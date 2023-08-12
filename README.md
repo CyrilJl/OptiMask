@@ -1,6 +1,3 @@
-Certainly! Here's a template for the `README.md` file for your `optimask` package, highlighting the core functionalities of the `OptiMask` class:
-
-```markdown
 # optimask: Data Masking Optimization Package
 
 `optimask` is a Python package that provides tools for optimizing data masking strategies based on NaN values in a given data array or DataFrame. The package contains the `OptiMask` class, which facilitates the arrangement of NaN values to remove rows and columns from the input data while maximizing the data coverage.
