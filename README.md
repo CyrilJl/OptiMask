@@ -18,17 +18,14 @@ Import the `OptiMask` class from the `optimask` package and use its methods to o
 from optimask import OptiMask
 import numpy as np
 
-# Create a sample data array with NaN values
-data = np.array([[1, 2, np.nan],
-                 [4, np.nan, 6],
-                 [7, 8, 9]])
+m = 120
+n = 7
+data = np.zeros(shape=(m, n))
+data[24:72, 3] = np.nan
+data[95, :5] = np.nan
 
-# Solve the optimization problem
-optimized_rows, optimized_cols = OptiMask.solve(data)
-
-# Print the optimized rows and columns
-print("Optimized Rows:", optimized_rows)
-print("Optimized Columns:", optimized_cols)
+rows, cols = OptiMask.solve(data)
+len(rows)*len(cols)/data.size, np.isnan(data[rows][:, cols]).any()
 ```
 
 ## Contributing
