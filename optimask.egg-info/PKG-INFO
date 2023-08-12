@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: optimask
-Version: 0.1
+Version: 0.1.1
 Description-Content-Type: text/markdown
 
 `OptiMask` is a cutting-edge Python package designed to optimize data masking strategies by intelligently arranging NaN values in a way that maximizes the data coverage, ensuring that the number of cells available for analysis is maximized.
