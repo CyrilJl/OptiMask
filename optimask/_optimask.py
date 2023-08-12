@@ -90,6 +90,14 @@ class OptiMask:
         Returns:
             Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index], np.ndarray, pd.DataFrame]: The indices of rows and columns to remove or the resulting submatrix, based on the value of return_data.
         """
+        # Check if data is either a numpy array or a pandas DataFrame
+        if not isinstance(data, (np.ndarray, pd.DataFrame)):
+            raise ValueError("Input 'data' must be either a numpy array or a pandas DataFrame.")
+
+        # Check dimensions for numpy array
+        if isinstance(data, np.ndarray) and data.ndim != 2:
+            raise ValueError("For a numpy array, 'data' must have ndim==2.")
+
         rows, cols = cls._solve(data)
 
         if isinstance(data, pd.DataFrame):
