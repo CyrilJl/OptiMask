@@ -64,7 +64,7 @@ class OptiMask:
             return np.arange(m.shape[0])
 
     @classmethod
-    def solve(cls, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _solve(cls, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         m, n = x.shape
         mask_nan = np.isnan(np.array(x))
         p_cols = cls.permutation_columns(np.array(x))
@@ -80,8 +80,8 @@ class OptiMask:
         return rows, cols
 
     @classmethod
-    def __call__(cls, data: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index], np.ndarray, pd.DataFrame]:
-        """Calls the solve method to find the rows and columns to remove and returns the results as indices or a submatrix.
+    def solve(cls, data: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index], np.ndarray, pd.DataFrame]:
+        """Calls the _solve method to find the rows and columns to remove and returns the results as indices or a submatrix.
 
         Parameters:
             data (np.ndarray or pd.DataFrame): The 2D array with missing data.
@@ -90,7 +90,7 @@ class OptiMask:
         Returns:
             Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index], np.ndarray, pd.DataFrame]: The indices of rows and columns to remove or the resulting submatrix, based on the value of return_data.
         """
-        rows, cols = cls.solve(data)
+        rows, cols = cls._solve(data)
 
         if isinstance(data, pd.DataFrame):
             if return_data:
