@@ -1,0 +1,22 @@
+package:
+  name: mon_projet
+  version: 0.1
+
+source:
+  git_url: https://github.com/CyrilJl/OptiMask.git
+  git_tag: v0.1
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+
+about:
+  home: https://github.com/CyrilJl/OptiMask
+  license: LicenseName
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
