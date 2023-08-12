@@ -1,9 +1,12 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(name='optimask',
-      version='0.1.1',
+      version='0.1.3',
       packages=find_packages(),
       install_requires=['numpy', 'pandas'],
       long_description_content_type='text/markdown',
-      long_description="README.md"
+      long_description=long_description
       )
