@@ -33,6 +33,4 @@ print("Optimized Columns:", optimized_cols)
 
 ## Contributing
 
-Contributions to `optimask` are welcome! If you find a bug, have a feature request, or want to contribute code, please feel free to open an issue or submit a pull request on the [GitHub repository](https://github.com/yourusername/optimask).
-
-```
+Contributions to `optimask` are welcome! If you find a bug, have a feature request, or want to contribute code, please feel free to open an issue or submit a pull request.
