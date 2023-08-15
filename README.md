@@ -1,15 +1,16 @@
-# OptiMask: A Python Package for Computing Optimal Masks in Matrix NaN Data Removal
+# OptiMask: Efficient Python Package for NaN Data Removal
 
-Introducing OptiMask, a comprehensive Python package designed to facilitate the seamless computation of optimal masks for efficient removal of NaN (Not-a-Number) data from matrices. The core principle behind OptiMask is to generate masks that result in processed matrices devoid of NaN values while retaining the maximum number of non-NaN cells from the original input matrix. This functionality is particularly valuable when dealing with datasets containing missing or incomplete information.
+Introducing OptiMask, a Python package designed to simplify the process of removing NaN (Not-a-Number) data from matrices while efficiently computing the largest submatrix without NaN. OptiMask focuses on providing immediate results, seamless compatibility with both Numpy arrays and Pandas DataFrames, and a user-friendly experience.
 
-**Key Features:**
-- **Efficient Mask Computation:** OptiMask streamlines the process of deriving masks that are optimized for NaN data elimination.
-- **NaN Data Removal:** The package enables users to effortlessly generate processed submatrices by excluding NaN values, ensuring data integrity and reliability.
-- **Maximized Data Retention:** OptiMask's algorithm focuses on preserving the highest count of non-NaN cells within the processed matrix.
-- **Compatibility with Numpy Arrays and Pandas DataFrames:** OptiMask seamlessly integrates with both Numpy arrays and Pandas DataFrames, two of the most widely used data structures in Python. This ensures that you can apply OptiMask's functionality to your preferred data format without any hassle.
-- **User-Friendly Interface:** With its Python-based interface, OptiMask is designed to be intuitive and user-friendly, catering to both beginners and experienced programmers.
+Highlights:
 
-Experience the convenience of NaN data removal with unparalleled efficiency and accuracy using OptiMask. Whether you're working with Numpy arrays or Pandas DataFrames, OptiMask provides a versatile solution to enhance your data preprocessing and analysis workflows.
+- NaN Data Removal: OptiMask streamlines the removal of NaN data from matrices, ensuring data integrity.
+- Largest Submatrix: OptiMask computes the largest submatrix without NaN, enhancing data analysis accuracy.
+- Swift Computation: With its fast computation, OptiMask swiftly generates results without unnecessary delays.
+- Numpy and Pandas: Whether you use Numpy or Pandas, OptiMask adapts to your preferred data structure.
+- Simplicity: OptiMask boasts a straightforward Python interface, making it easy for users of all levels to navigate.
+
+Discover the efficiency of NaN data removal and submatrix optimization with OptiMask. Enhance your data processing workflows with a tool that prioritizes accuracy and simplicity
 
 ## Installation
 
