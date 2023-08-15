@@ -38,7 +38,7 @@ rows, cols = OptiMask.solve(data)
 len(rows)*len(cols)/data.size, np.isnan(data[rows][:, cols]).any()
 ```
 
-More information on the algorithm are presented in this [Notebook Explicatif](notebooks/Optimask.ipynb)
+More information on the algorithm are presented in this [notebook](notebooks/Optimask.ipynb)
 
 ## Contributing
 
