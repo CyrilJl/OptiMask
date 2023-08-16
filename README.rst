@@ -31,19 +31,20 @@ Usage Example
 
 Import the `OptiMask` class from the `optimask` package and utilize its methods for efficient data masking:
 
-::
+.. code-block:: python
 
-    from optimask import OptiMask
-    import numpy as np
+   from optimask import OptiMask
+   import numpy as np
 
-    m = 120
-    n = 7
-    data = np.zeros(shape=(m, n))
-    data[24:72, 3] = np.nan
-    data[95, :5] = np.nan
+   m = 120
+   n = 7
+   data = np.zeros(shape=(m, n))
+   data[24:72, 3] = np.nan
+   data[95, :5] = np.nan
 
-    rows, cols = OptiMask.solve(data)
-    len(rows) * len(cols) / data.size, np.isnan(data[rows][:, cols]).any()
+   rows, cols = OptiMask.solve(data)
+   len(rows) * len(cols) / data.size, np.isnan(data[rows][:, cols]).any()
+
 
 Further Information
 -------------------
