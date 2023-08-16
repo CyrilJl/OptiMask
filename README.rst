@@ -1,5 +1,3 @@
-|pypi|
-
 OptiMask: Efficient NaN Data Removal in Python
 ==============================================
 
@@ -44,6 +42,7 @@ Import the `OptiMask` class from the `optimask` package and utilize its methods 
 
    rows, cols = OptiMask.solve(data)
    len(rows) * len(cols) / data.size, np.isnan(data[rows][:, cols]).any()
+   # Output: (0.85, False)
 
 
 Further Information
