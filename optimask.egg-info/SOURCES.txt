@@ -1,0 +1,9 @@
+README.rst
+setup.py
+optimask/__init__.py
+optimask/_optimask.py
+optimask.egg-info/PKG-INFO
+optimask.egg-info/SOURCES.txt
+optimask.egg-info/dependency_links.txt
+optimask.egg-info/requires.txt
+optimask.egg-info/top_level.txt
