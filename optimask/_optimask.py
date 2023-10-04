@@ -63,7 +63,7 @@ class OptiMask:
 
     @classmethod
     def _compute_permutations(cls, x):
-        xp, p_cols, p_rows = np.isnan(np.array(x)).copy(), np.arange(x.shape[1]), np.arange(x.shape[0])
+        xp, p_rows, p_cols = cls._process_init(x=np.isnan(np.array(x)))
 
         step = 0
         while (not cls._is_pareto_ordered(xp)) and (step < cls.MAX_STEPS):
