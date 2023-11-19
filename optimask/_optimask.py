@@ -45,7 +45,7 @@ class OptiMask:
         return x.nonzero()[0].max() + 1 if np.any(x) else 0
 
     @staticmethod
-    def _is_decreasing(x):
+    def _is_decreasing(x) -> bool:
         return np.all(x[:-1] >= x[1:])
 
     @classmethod
@@ -94,7 +94,7 @@ class OptiMask:
                 p_rows = p_rows[p_step]
 
         if not self._is_pareto_ordered(xpp):
-            raise ValueError("An error occurred during the computation of the optimal permutations.")
+            raise ValueError("An error occurred during the computation of the optimal permutations, you may retry with a greater `max_steps`")
         else:
             return xpp, p_rows, p_cols
 
@@ -107,21 +107,24 @@ class OptiMask:
     def _solve(self, x):
         m, n = x.shape
         xp, nan_rows, nan_cols = self._find_nan_indices(x)
-        rng = np.random.default_rng(seed=self.random_state)
+        if len(nan_rows) == 0:
+            return np.arange(m), np.arange(n)
+        else:
+            rng = np.random.default_rng(seed=self.random_state)
 
-        area_max = -1
-        for _ in range(self.n_tries):
-            area, i0, j0, p_rows, p_cols = self._trial(xp, m, n, rng)
-            if area > area_max:
-                area_max = area
-                opt = i0, j0, p_rows, p_cols
+            area_max = -1
+            for _ in range(self.n_tries):
+                area, i0, j0, p_rows, p_cols = self._trial(xp, m, n, rng)
+                if area > area_max:
+                    area_max = area
+                    opt = i0, j0, p_rows, p_cols
 
-        i0, j0, p_rows, p_cols = opt
-        rows_to_remove, cols_to_remove = nan_rows[p_rows[:i0]], nan_cols[p_cols[:j0]]
+            i0, j0, p_rows, p_cols = opt
+            rows_to_remove, cols_to_remove = nan_rows[p_rows[:i0]], nan_cols[p_cols[:j0]]
 
-        rows_to_keep = np.array([_ for _ in range(m) if _ not in rows_to_remove])
-        cols_to_keep = np.array([_ for _ in range(n) if _ not in cols_to_remove])
-        return rows_to_keep, cols_to_keep
+            rows_to_keep = np.array([_ for _ in range(m) if _ not in rows_to_remove])
+            cols_to_keep = np.array([_ for _ in range(n) if _ not in cols_to_remove])
+            return rows_to_keep, cols_to_keep
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
@@ -156,7 +159,7 @@ class OptiMask:
             if return_data:
                 return X.iloc[rows, cols].copy()
             else:
-                return X.index[rows], data.columns[cols]
+                return X.index[rows].copy(), data.columns[cols].copy()
 
         if isinstance(X, np.ndarray):
             if return_data:
