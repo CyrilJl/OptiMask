@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# author : Cyril Joly
+# author: Cyril Joly
 
 from typing import Tuple, Union
 
@@ -12,20 +12,19 @@ __all__ = ["OptiMask"]
 
 class OptiMask:
     """
-    OptiMask est une classe permettant de calculer les lignes et les colonnes optimales à conserver dans un tableau
-    ou un DataFrame 2D afin de supprimer les valeurs NaN et de conserver le nombre maximal de cellules non-NaN.
-    La classe utilise une approche d'optimisation heuristique, et augmenter la valeur de `n_tries` conduit généralement
-    à de meilleurs résultats, pouvant atteindre ou approcher étroitement la quantité optimale.
+    OptiMask is a class for calculating the optimal rows and columns to retain in a 2D array or DataFrame
+    to remove NaN values and preserve the maximum number of non-NaN cells. The class uses a heuristic optimization approach,
+    and increasing the value of `n_tries` generally leads to better results, approaching or reaching the optimal quantity.
 
-    Paramètres :
-    - n_tries (int) : Le nombre de tentatives d'optimisation. Des valeurs plus élevées peuvent conduire à de meilleurs résultats.
-    - max_steps (int) : Le nombre maximum d'étapes à effectuer dans chaque tentative d'optimisation.
-    - random_state (Union[int, None]) : Graine pour le générateur de nombres aléatoires.
+    Parameters:
+    - n_tries (int): The number of optimization attempts. Higher values may lead to better results.
+    - max_steps (int): The maximum number of steps to perform in each optimization attempt.
+    - random_state (Union[int, None]): Seed for the random number generator.
 
-    Attributs :
-    - n_tries (int) : Le nombre de tentatives d'optimisation.
-    - max_steps (int) : Le nombre maximum d'étapes à effectuer dans chaque tentative d'optimisation.
-    - random_state (Union[int, None]) : Graine pour le générateur de nombres aléatoires.
+    Attributes:
+    - n_tries (int): The number of optimization attempts.
+    - max_steps (int): The maximum number of steps to perform in each optimization attempt.
+    - random_state (Union[int, None]): Seed for the random number generator.
     """
 
     def __init__(self, n_tries=10, max_steps=32, random_state=None):
@@ -92,7 +91,8 @@ class OptiMask:
             heights = self._heights(xpp, axis=0), self._heights(xpp, axis=1)
 
         if not self._is_pareto_ordered(*heights):
-            raise ValueError("Une erreur s'est produite lors du calcul des permutations optimales. Vous pouvez réessayer avec une valeur `max_steps` plus grande.")
+            raise ValueError("An error occurred while calculating optimal permutations."
+                             "You can try again with a larger `max_steps` value.")
         else:
             return xpp, p_rows, p_cols
 
@@ -129,31 +129,31 @@ class OptiMask:
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
-        Résoud le problème optimal de suppression des NaN pour un tableau 2D ou un DataFrame.
+        Solve the optimal problem of removing NaN values for a 2D array or DataFrame.
 
-        Paramètres :
-        - X (Union[np.ndarray, pd.DataFrame]) : Le tableau 2D ou le DataFrame d'entrée avec des valeurs NaN.
-        - return_data (bool) : Si True, renvoie les données résultantes ; sinon, renvoie les indices.
+        Parameters:
+        - X (Union[np.ndarray, pd.DataFrame]): The input 2D array or DataFrame with NaN values.
+        - return_data (bool): If True, return the resulting data; otherwise, return the indices.
 
-        Renvoie :
-        - Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]] : Si return_data est True,
-          renvoie le tableau 2D ou le DataFrame résultant ; sinon, renvoie les indices des lignes et des colonnes à conserver.
+        Returns:
+        - Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]: If return_data is True,
+          returns the resulting 2D array or DataFrame; otherwise, returns the indices of rows and columns to retain.
 
-        Lève :
-        - ValueError : Si les données d'entrée ne sont pas un tableau numpy ou un DataFrame pandas,
-          ou si le tableau numpy d'entrée n'a pas ndim==2,
-          ou si l'algorithme rencontre une erreur pendant l'optimisation.
+        Raises:
+        - ValueError: If the input data is not a numpy array or a pandas DataFrame,
+          or if the numpy array input does not have ndim==2,
+          or if the algorithm encounters an error during optimization.
         """
         if not isinstance(X, (np.ndarray, pd.DataFrame)):
-            raise ValueError()
+            raise ValueError("Input 'X' must be a numpy array or a pandas DataFrame.")
 
         if isinstance(X, np.ndarray) and X.ndim != 2:
-            raise ValueError("Pour un tableau numpy, 'X' doit avoir ndim==2.")
+            raise ValueError("For a numpy array, 'X' must have ndim==2.")
 
         rows, cols = self._solve(np.isnan(np.asarray(X)))
 
         if np.isnan(np.asarray(X)[rows][:, cols]).any():
-            raise ValueError("L'algorithme OptiMask a rencontré une erreur.")
+            raise ValueError("The OptiMask algorithm encountered an error.")
 
         if isinstance(X, pd.DataFrame):
             if return_data:
