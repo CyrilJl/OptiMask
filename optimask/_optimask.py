@@ -109,7 +109,6 @@ class OptiMask:
             return np.arange(m), np.arange(n)
         else:
             rng = np.random.default_rng(seed=self.random_state)
-
             area_max = -1
             for _ in range(self.n_tries):
                 area, i0, j0, p_rows, p_cols = self._trial(xp, m, n, rng)
@@ -118,13 +117,10 @@ class OptiMask:
                     opt = i0, j0, p_rows, p_cols
 
             i0, j0, p_rows, p_cols = opt
-            rows_to_remove, cols_to_remove = nan_rows[p_rows[:i0]
-                                                      ], nan_cols[p_cols[:j0]]
+            rows_to_remove, cols_to_remove = nan_rows[p_rows[:i0]], nan_cols[p_cols[:j0]]
 
-            rows_to_keep = np.array(
-                [_ for _ in range(m) if _ not in rows_to_remove])
-            cols_to_keep = np.array(
-                [_ for _ in range(n) if _ not in cols_to_remove])
+            rows_to_keep = np.array([_ for _ in range(m) if _ not in rows_to_remove])
+            cols_to_keep = np.array([_ for _ in range(n) if _ not in cols_to_remove])
             return rows_to_keep, cols_to_keep
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
