@@ -12,20 +12,20 @@ __all__ = ["OptiMask"]
 
 class OptiMask:
     """
-    OptiMask is a class for computing the optimal rows and columns to keep in a 2D array or DataFrame
-    in order to remove NaN values and retain the maximum amount of non-NaN cells. The class employs a heuristic
-    optimization approach, and increasing the value of `n_tries` generally results in more remaining cells,
-    potentially reaching or closely approaching the optimal amount.
+    OptiMask est une classe permettant de calculer les lignes et les colonnes optimales à conserver dans un tableau
+    ou un DataFrame 2D afin de supprimer les valeurs NaN et de conserver le nombre maximal de cellules non-NaN.
+    La classe utilise une approche d'optimisation heuristique, et augmenter la valeur de `n_tries` conduit généralement
+    à de meilleurs résultats, pouvant atteindre ou approcher étroitement la quantité optimale.
 
-    Parameters:
-    - n_tries (int): The number of optimization attempts. Higher values may lead to better results.
-    - max_steps (int): The maximum number of steps to perform in each optimization attempt.
-    - random_state (Union[int, None]): Seed for the random number generator.
+    Paramètres :
+    - n_tries (int) : Le nombre de tentatives d'optimisation. Des valeurs plus élevées peuvent conduire à de meilleurs résultats.
+    - max_steps (int) : Le nombre maximum d'étapes à effectuer dans chaque tentative d'optimisation.
+    - random_state (Union[int, None]) : Graine pour le générateur de nombres aléatoires.
 
-    Attributes:
-    - n_tries (int): The number of optimization attempts.
-    - max_steps (int): The maximum number of steps to perform in each optimization attempt.
-    - random_state (Union[int, None]): Seed for the random number generator.
+    Attributs :
+    - n_tries (int) : Le nombre de tentatives d'optimisation.
+    - max_steps (int) : Le nombre maximum d'étapes à effectuer dans chaque tentative d'optimisation.
+    - random_state (Union[int, None]) : Graine pour le générateur de nombres aléatoires.
     """
 
     def __init__(self, n_tries=10, max_steps=32, random_state=None):
@@ -40,37 +40,32 @@ class OptiMask:
         nan_cols = np.unique(nan_cols)
         return x[nan_rows][:, nan_cols], nan_rows, nan_cols
 
-    @staticmethod
-    def _height(x: np.ndarray) -> int:
-        return x.nonzero()[0].max() + 1 if np.any(x) else 0
+    @classmethod
+    def _heights(cls, x, axis=0):
+        return np.argmax(np.cumsum(x, axis=axis), axis=axis) + 1
 
     @staticmethod
     def _is_decreasing(x) -> bool:
         return np.all(x[:-1] >= x[1:])
 
     @classmethod
-    def _sort_by_na_max_index(cls, x: np.ndarray, axis: int = 0) -> np.ndarray:
-        if axis == 0:
-            return np.argsort([cls._height(p) for p in x.T], kind='mergesort')[::-1]
-        if axis == 1:
-            return np.argsort([cls._height(p) for p in x], kind='mergesort')[::-1]
+    def _sort_by_na_max_index(cls, height) -> np.ndarray:
+        return np.argsort(-height, kind='mergesort')
 
     @classmethod
     def _get_largest_rectangle(cls, x, m, n):
-        heights = [cls._height(_) for _ in x.T]
+        heights = cls._heights(x, axis=0)
         areas = [(m - h) * (n - k) for k, h in enumerate(heights)]
         i0 = np.argmax(areas)
         return heights[i0], i0, areas[i0]
 
     @classmethod
-    def _is_pareto_ordered(cls, x):
-        h0 = np.array([cls._height(_) for _ in x])
-        h1 = np.array([cls._height(_) for _ in x.T])
-        return cls._is_decreasing(h0) and cls._is_decreasing(h1)
+    def _is_pareto_ordered(cls, hx, hy):
+        return cls._is_decreasing(hx) and cls._is_decreasing(hy)
 
     @classmethod
-    def _process_step(cls, x, axis):
-        p = cls._sort_by_na_max_index(x, axis=axis)
+    def _process_step(cls, x, height, axis):
+        p = cls._sort_by_na_max_index(height)
         if axis == 0:
             return x[:, p], p
         if axis == 1:
@@ -80,21 +75,24 @@ class OptiMask:
     def _random_start(xp, rng):
         p_rows = rng.permutation(xp.shape[0])
         p_cols = rng.permutation(xp.shape[1])
-        return xp[p_rows][:, p_cols].copy(), p_rows, p_cols
+        return xp[p_rows][:, p_cols], p_rows, p_cols
 
     def _compute_permutations(self, xpp, p_rows, p_cols):
         step = 0
-        while (not self._is_pareto_ordered(xpp)) and (step < self.max_steps):
+        heights = self._heights(xpp, axis=0), self._heights(xpp, axis=1)
+        while (not self._is_pareto_ordered(*heights)) and (step < self.max_steps):
             axis = (step % 2)
             step += 1
-            xpp, p_step = self._process_step(xpp, axis=axis)
+            xpp, p_step = self._process_step(xpp, heights[axis], axis=axis)
             if axis == 0:
                 p_cols = p_cols[p_step]
             if axis == 1:
                 p_rows = p_rows[p_step]
 
-        if not self._is_pareto_ordered(xpp):
-            raise ValueError("An error occurred during the computation of the optimal permutations, you may retry with a greater `max_steps`")
+            heights = self._heights(xpp, axis=0), self._heights(xpp, axis=1)
+
+        if not self._is_pareto_ordered(*heights):
+            raise ValueError("Une erreur s'est produite lors du calcul des permutations optimales. Vous pouvez réessayer avec une valeur `max_steps` plus grande.")
         else:
             return xpp, p_rows, p_cols
 
@@ -120,46 +118,48 @@ class OptiMask:
                     opt = i0, j0, p_rows, p_cols
 
             i0, j0, p_rows, p_cols = opt
-            rows_to_remove, cols_to_remove = nan_rows[p_rows[:i0]], nan_cols[p_cols[:j0]]
+            rows_to_remove, cols_to_remove = nan_rows[p_rows[:i0]
+                                                      ], nan_cols[p_cols[:j0]]
 
-            rows_to_keep = np.array([_ for _ in range(m) if _ not in rows_to_remove])
-            cols_to_keep = np.array([_ for _ in range(n) if _ not in cols_to_remove])
+            rows_to_keep = np.array(
+                [_ for _ in range(m) if _ not in rows_to_remove])
+            cols_to_keep = np.array(
+                [_ for _ in range(n) if _ not in cols_to_remove])
             return rows_to_keep, cols_to_keep
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
-        Solve the optimal NaN removal problem for a 2D array or DataFrame.
+        Résoud le problème optimal de suppression des NaN pour un tableau 2D ou un DataFrame.
 
-        Parameters:
-        - X (Union[np.ndarray, pd.DataFrame]): The input 2D array or DataFrame with NaN values.
-        - return_data (bool): If True, return the resulting data; otherwise, return indices.
+        Paramètres :
+        - X (Union[np.ndarray, pd.DataFrame]) : Le tableau 2D ou le DataFrame d'entrée avec des valeurs NaN.
+        - return_data (bool) : Si True, renvoie les données résultantes ; sinon, renvoie les indices.
 
-        Returns:
-        - Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]: If return_data is True,
-          returns the resulting 2D array or DataFrame; otherwise, returns the indices of rows and columns to keep.
+        Renvoie :
+        - Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]] : Si return_data est True,
+          renvoie le tableau 2D ou le DataFrame résultant ; sinon, renvoie les indices des lignes et des colonnes à conserver.
 
-        Raises:
-        - ValueError: If the input data is not a numpy array or a pandas DataFrame,
-          or if the input numpy array does not have ndim==2,
-          or if the algorithm encounters an error during optimization.
+        Lève :
+        - ValueError : Si les données d'entrée ne sont pas un tableau numpy ou un DataFrame pandas,
+          ou si le tableau numpy d'entrée n'a pas ndim==2,
+          ou si l'algorithme rencontre une erreur pendant l'optimisation.
         """
         if not isinstance(X, (np.ndarray, pd.DataFrame)):
-            raise ValueError("`data` must be a numpy array or a pandas DataFrame.")
+            raise ValueError()
 
-        # Check dimensions for numpy array
         if isinstance(X, np.ndarray) and X.ndim != 2:
-            raise ValueError("For a numpy array, 'X' must have ndim==2.")
+            raise ValueError("Pour un tableau numpy, 'X' doit avoir ndim==2.")
 
         rows, cols = self._solve(np.isnan(np.asarray(X)))
 
         if np.isnan(np.asarray(X)[rows][:, cols]).any():
-            raise ValueError("The OptiMask algorithm encountered an error.")
+            raise ValueError("L'algorithme OptiMask a rencontré une erreur.")
 
         if isinstance(X, pd.DataFrame):
             if return_data:
                 return X.iloc[rows, cols].copy()
             else:
-                return X.index[rows].copy(), data.columns[cols].copy()
+                return X.index[rows].copy(), X.columns[cols].copy()
 
         if isinstance(X, np.ndarray):
             if return_data:
