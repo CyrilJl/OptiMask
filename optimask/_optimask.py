@@ -37,7 +37,7 @@ class OptiMask:
 
     def _verbose(self, msg):
         if self.verbose:
-            warn(msg)
+            print(msg)
 
     @staticmethod
     def _find_nan_indices(x):
