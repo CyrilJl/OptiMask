@@ -1,4 +1,5 @@
-[![PyPI Latest Release](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/)
+.. image:: https://img.shields.io/pypi/v/optimask.svg
+    :target: https://pypi.org/project/optimask/
 
 OptiMask: Efficient NaN Data Removal in Python
 ==============================================
