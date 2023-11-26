@@ -1,3 +1,5 @@
+[![PyPI Latest Release](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/)
+
 OptiMask: Efficient NaN Data Removal in Python
 ==============================================
 
@@ -48,7 +50,7 @@ Import the `OptiMask` class from the `optimask` package and utilize its methods 
 Further Information
 -------------------
 
-Additional details about the algorithm are available in this `notebook <notebooks/Optimask.ipynb>`_.
+Additional details about the algorithm are available in this `notebook <https://github.com/CyrilJl/OptiMask/blob/main/notebooks/Optimask.ipynb>`_.
 
 Contributions
 -------------
