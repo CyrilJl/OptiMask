@@ -47,7 +47,7 @@ class OptiMask:
 
     @classmethod
     def _heights(cls, x, axis=0):
-        return np.argmax(np.cumsum(x, axis=axis), axis=axis) + 1
+        return x.shape[axis] - np.argmax(np.flip(x, axis=axis), axis=axis)
 
     @staticmethod
     def _is_decreasing(x) -> bool:
