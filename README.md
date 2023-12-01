@@ -30,20 +30,34 @@ Import the `OptiMask` class from the `optimask` package and utilize its methods 
 from optimask import OptiMask
 import numpy as np
 
+# Create a matrix with NaN values
 m = 120
 n = 7
 data = np.zeros(shape=(m, n))
 data[24:72, 3] = np.nan
 data[95, :5] = np.nan
 
+# Solve for the largest submatrix without NaN values
 rows, cols = OptiMask.solve(data)
-len(rows) * len(cols) / data.size, np.isnan(data[rows][:, cols]).any()
-# Output: (0.85, False)
+
+# Calculate the ratio of non-NaN values in the result
+coverage_ratio = len(rows) * len(cols) / data.size
+
+# Check if there are any NaN values in the selected submatrix
+has_nan_values = np.isnan(data[rows][:, cols]).any()
+
+# Print or display the results
+print(f"Coverage Ratio: {coverage_ratio:.2f}, Has NaN Values: {has_nan_values}")
+# Output: Coverage Ratio: 0.85, Has NaN Values: False
 ```
 
 ## Further Information
 
 Additional details about the algorithm are available in this [notebook](https://github.com/CyrilJl/OptiMask/blob/main/notebooks/Optimask.ipynb).
+
+## Repository Link
+
+Find more about OptiMask on [GitHub](https://github.com/CyrilJl/OptiMask).
 
 ## Contributions
 
