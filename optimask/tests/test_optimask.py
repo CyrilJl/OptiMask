@@ -1,0 +1,50 @@
+import numpy as np
+import pandas as pd
+import pytest
+
+from optimask import OptiMask
+
+
+def generate_random(m, n, ratio):
+    """Missing at random arrays"""
+    arr = np.zeros((m, n))
+    nan_count = int(ratio * m * n)
+    indices = np.random.choice(m * n, nan_count, replace=False)
+    arr.flat[indices] = np.nan
+    return arr
+
+
+@pytest.fixture
+def opti_mask_instance():
+    return OptiMask()
+
+
+def test_solve_with_numpy_array(opti_mask_instance):
+    m, n = 350, 50
+    ratio = 0.2
+    n = 150
+    for _ in range(n):
+        input_data = generate_random(m, n, ratio)
+        rows, cols = opti_mask_instance.solve(input_data)
+        assert np.all(np.isfinite(input_data[rows][:, cols]))
+
+
+def test_solve_with_pandas_dataframe(opti_mask_instance):
+    m, n = 350, 50
+    ratio = 0.2
+    n = 150
+    for _ in range(n):
+        input_data = pd.DataFrame(generate_random(m, n, ratio))
+        rows, cols = opti_mask_instance.solve(input_data)
+        assert np.all(np.isfinite(input_data.loc[rows, cols]))
+
+
+def test_solve_with_invalid_input(opti_mask_instance):
+    with pytest.raises(ValueError, match="Input 'X' must be a numpy array or a pandas DataFrame."):
+        opti_mask_instance.solve("invalid_input")
+
+
+def test_solve_with_invalid_numpy_array(opti_mask_instance):
+    invalid_input = np.array([1, 2, 3])
+    with pytest.raises(ValueError, match="For a numpy array, 'X' must have ndim==2."):
+        opti_mask_instance.solve(invalid_input)
