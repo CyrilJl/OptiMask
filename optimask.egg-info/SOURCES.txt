@@ -1,4 +1,5 @@
-README.rst
+LICENSE
+README.md
 setup.py
 optimask/__init__.py
 optimask/_optimask.py

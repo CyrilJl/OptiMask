@@ -1,63 +1,75 @@
 Metadata-Version: 2.1
 Name: optimask
-Version: 0.1.8
+Version: 0.1.15
+Summary: OptiMask: extracting the largest (non-contiguous) submatrix without NaN
+Home-page: https://github.com/CyrilJl/optimask
+Author: Cyril Joly
+License: MIT
+Classifier: License :: OSI Approved :: MIT License
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: numpy
 Requires-Dist: pandas
 
-OptiMask: Efficient NaN Data Removal in Python
-==============================================
+# OptiMask: Efficient NaN Data Removal in Python
 
-Introduction
-------------
+[![PyPI Version](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/)
 
-OptiMask is a Python package designed to facilitate the process of removing NaN (Not-a-Number) data from matrices, while efficiently computing the largest submatrix without NaN values. This tool prioritizes practicality, compatibility with Numpy arrays and Pandas DataFrames, and user-friendliness.
+## Introduction
 
-Key Features
-------------
+OptiMask is a Python package designed to facilitate the process of removing NaN (Not-a-Number) data from matrices while efficiently computing the largest (and not necessarily contiguous) submatrix without NaN values. This tool prioritizes practicality and compatibility with Numpy arrays and Pandas DataFrames.
 
-- NaN Data Removal: OptiMask simplifies NaN data removal from matrices, preserving data integrity.
-- Largest Submatrix: OptiMask calculates the largest submatrix without NaN, enhancing data analysis accuracy.
-- Efficient Computation: With optimized computation, OptiMask provides rapid results without undue delays.
-- Numpy and Pandas Compatibility: OptiMask seamlessly adapts to both Numpy and Pandas data structures.
-- User-Friendly Interface: OptiMask offers an intuitive Python interface, ensuring accessibility for users of varying expertise.
+## Key Features
 
-Utilization
------------
+- **Largest Submatrix without NaN:** OptiMask calculates the largest submatrix without NaN, enhancing data analysis accuracy.
+- **Efficient Computation:** With optimized computation, OptiMask provides rapid results without undue delays.
+- **Numpy and Pandas Compatibility:** OptiMask seamlessly adapts to both Numpy and Pandas data structures.
+
+## Utilization
 
 To employ OptiMask, install the `optimask` package via pip:
 
-::
+```bash
+pip install optimask
+```
 
-    pip install optimask
-
-Usage Example
--------------
+## Usage Example
 
 Import the `OptiMask` class from the `optimask` package and utilize its methods for efficient data masking:
 
-.. code-block:: python
+```python
+from optimask import OptiMask
+import numpy as np
 
-   from optimask import OptiMask
-   import numpy as np
+# Create a matrix with NaN values
+m = 120
+n = 7
+data = np.zeros(shape=(m, n))
+data[24:72, 3] = np.nan
+data[95, :5] = np.nan
 
-   m = 120
-   n = 7
-   data = np.zeros(shape=(m, n))
-   data[24:72, 3] = np.nan
-   data[95, :5] = np.nan
+# Solve for the largest submatrix without NaN values
+rows, cols = OptiMask.solve(data)
 
-   rows, cols = OptiMask.solve(data)
-   len(rows) * len(cols) / data.size, np.isnan(data[rows][:, cols]).any()
-   # Output: (0.85, False)
+# Calculate the ratio of non-NaN values in the result
+coverage_ratio = len(rows) * len(cols) / data.size
 
+# Check if there are any NaN values in the selected submatrix
+has_nan_values = np.isnan(data[rows][:, cols]).any()
 
-Further Information
--------------------
+# Print or display the results
+print(f"Coverage Ratio: {coverage_ratio:.2f}, Has NaN Values: {has_nan_values}")
+# Output: Coverage Ratio: 0.85, Has NaN Values: False
+```
 
-Additional details about the algorithm are available in this `notebook <notebooks/Optimask.ipynb>`_.
+## Further Information
 
-Contributions
--------------
+Additional details about the algorithm are available in this [notebook](https://github.com/CyrilJl/OptiMask/blob/main/notebooks/Optimask.ipynb).
+
+## Repository Link
+
+Find more about OptiMask on [GitHub](https://github.com/CyrilJl/OptiMask).
+
+## Contributions
 
 Contributions to the `optimask` project are encouraged. For bug reports, feature requests, or code contributions, please open an issue or submit a pull request.
