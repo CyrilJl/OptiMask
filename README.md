@@ -36,7 +36,7 @@ data[24:72, 3] = np.nan
 data[95, :5] = np.nan
 
 # Solve for the largest submatrix without NaN values
-rows, cols = OptiMask.solve(data)
+rows, cols = OptiMask().solve(data)
 
 # Calculate the ratio of non-NaN values in the result
 coverage_ratio = len(rows) * len(cols) / data.size
