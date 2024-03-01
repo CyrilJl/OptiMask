@@ -59,7 +59,7 @@ Find more about OptiMask on [GitHub](https://github.com/CyrilJl/OptiMask).
 
 ## Citation
 
-If you use OptiMask in your research or work, please cite it using the following BibTeX entry:
+If you use OptiMask in your research or work, please cite it:
 
 ```bibtex
 @software{optimask2024,
@@ -68,3 +68,5 @@ If you use OptiMask in your research or work, please cite it using the following
   year = {2024},
   url = {https://github.com/CyrilJl/OptiMask},
 }
+
+**OptiMask (2024). NaN Removal and Largest Submatrix Computation. Developed by Cyril Joly: https://github.com/CyrilJl/OptiMask**
