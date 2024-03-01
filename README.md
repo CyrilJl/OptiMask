@@ -68,5 +68,5 @@ If you use OptiMask in your research or work, please cite it:
   year = {2024},
   url = {https://github.com/CyrilJl/OptiMask},
 }
-
+```
 **OptiMask (2024). NaN Removal and Largest Submatrix Computation. Developed by Cyril Joly: https://github.com/CyrilJl/OptiMask**
