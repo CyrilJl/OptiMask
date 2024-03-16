@@ -48,3 +48,11 @@ def test_solve_with_invalid_numpy_array(opti_mask_instance):
     invalid_input = np.array([1, 2, 3])
     with pytest.raises(ValueError, match="For a numpy array, 'X' must have ndim==2."):
         opti_mask_instance.solve(invalid_input)
+
+
+def test_no_nan(opti_mask_instance):
+    m, n = 100, 75
+    x = np.ones((m, n))
+    r, c = opti_mask_instance.solve(x)
+    assert np.allclose(r, np.arange(m))
+    assert np.allclose(c, np.arange(n))
