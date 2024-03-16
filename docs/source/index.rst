@@ -1,7 +1,7 @@
 .. _Optimask:
 
 OptiMask Documentation
-======================
+######################
 
 .. toctree::
    :hidden:

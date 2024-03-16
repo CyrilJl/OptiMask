@@ -1,7 +1,7 @@
 .. _future:
 
 Future Developments
-===================
+###################
 
 OptiMask is committed to ongoing improvements to better serve its users. Planned future developments include:
 
