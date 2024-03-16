@@ -169,25 +169,28 @@ class OptiMask:
         m, n = x.shape
         df = pd.DataFrame()
         iy, ix = np.isnan(x).nonzero()
-        rows_with_nan, df[0] = np.unique(iy, return_inverse=True)
-        cols_with_nan, df[1] = np.unique(ix, return_inverse=True)
-        m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
+        if len(iy)>0:
+            rows_with_nan, df[0] = np.unique(iy, return_inverse=True)
+            cols_with_nan, df[1] = np.unique(ix, return_inverse=True)
+            m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
 
-        rng = np.random.default_rng(seed=self.random_state)
-        area_max = -1
-        for k in range(self.n_tries):
-            area, i0, j0, p_rows, p_cols = self._trial(rng, df, m, n, m_nan, n_nan)
-            self._verbose(f"\tTrial {k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
-            if area > area_max:
-                area_max = area
-                opt = i0, j0, p_rows, p_cols
+            rng = np.random.default_rng(seed=self.random_state)
+            area_max = -1
+            for k in range(self.n_tries):
+                area, i0, j0, p_rows, p_cols = self._trial(rng, df, m, n, m_nan, n_nan)
+                self._verbose(f"\tTrial {k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
+                if area > area_max:
+                    area_max = area
+                    opt = i0, j0, p_rows, p_cols
 
-        i0, j0, p_rows, p_cols = opt
-        self._verbose(f"Result: the largest submatrix found is of size {m - j0}x{n - i0} ({area_max} elements) found.")
+            i0, j0, p_rows, p_cols = opt
+            self._verbose(f"Result: the largest submatrix found is of size {m - j0}x{n - i0} ({area_max} elements) found.")
 
-        rows_to_keep = np.setdiff1d(np.arange(m), rows_with_nan[p_rows[:j0]])
-        cols_to_keep = np.setdiff1d(np.arange(n), cols_with_nan[p_cols[:i0]])
-        return rows_to_keep, cols_to_keep
+            rows_to_keep = np.setdiff1d(np.arange(m), rows_with_nan[p_rows[:j0]])
+            cols_to_keep = np.setdiff1d(np.arange(n), cols_with_nan[p_cols[:i0]])
+            return rows_to_keep, cols_to_keep
+        else:
+            return np.arange(m), np.arange(n)
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
