@@ -4,8 +4,10 @@ OptiMask Documentation
 ======================
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
+   :maxdepth: 1   
 
    introduction
    notebook
    api_reference
+   future

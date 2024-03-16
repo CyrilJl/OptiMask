@@ -33,7 +33,6 @@ exclude_patterns = []
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 
-
 autodoc_default_options = {
     'members': True,
     'undoc-members': True
