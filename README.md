@@ -49,9 +49,9 @@ print(f"Coverage Ratio: {coverage_ratio:.2f}, Has NaN Values: {has_nan_values}")
 # Output: Coverage Ratio: 0.85, Has NaN Values: False
 ```
 
-## Further Information
+## Documentation
 
-Additional details about the algorithm are available in this [notebook](https://github.com/CyrilJl/OptiMask/blob/main/notebooks/Optimask.ipynb).
+For detailed documentation, including installation instructions, API usage, and examples, visit [OptiMask Documentation](https://optimask.readthedocs.io/en/latest/index.html).
 
 ## Repository Link
 
