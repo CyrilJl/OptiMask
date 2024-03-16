@@ -2,3 +2,5 @@ nbsphinx
 nbsphinx-link
 pydata-sphinx-theme
 sphinx-copybutton
+numpy
+pandas
