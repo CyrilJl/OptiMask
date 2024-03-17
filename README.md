@@ -20,6 +20,16 @@ To employ OptiMask, install the `optimask` package via pip:
 pip install optimask
 ```
 
+OptiMask is also available on the conda-forge channel:
+
+```bash
+conda install -c conda-forge optimask
+```
+
+```bash
+mamba install optimask
+```
+
 ## Usage Example
 
 Import the `OptiMask` class from the `optimask` package and utilize its methods for efficient data masking:
