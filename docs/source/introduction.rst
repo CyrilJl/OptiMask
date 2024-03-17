@@ -12,6 +12,16 @@ You can install OptiMask using pip:
 
    pip install optimask
 
+Optimask is also available on the conda-forge channel:
+
+.. code-block:: bash
+
+   conda install -c conda-forge optimask
+
+.. code-block:: bash
+
+   mamba install optimask
+
 
 Basic Usage
 -----------
