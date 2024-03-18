@@ -6,6 +6,7 @@ dependencies:
   - nbsphinx-link
   - pydata-sphinx-theme
   - sphinx-copybutton
+  - sphinx-favicon
   - pandoc
   - numpy
   - pandas

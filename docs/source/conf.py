@@ -21,7 +21,7 @@ author = 'Cyril Joly'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.napoleon', 'nbsphinx', 'nbsphinx_link', 'sphinx_copybutton']
+extensions = ['sphinx.ext.napoleon', 'nbsphinx', 'nbsphinx_link', 'sphinx_copybutton', "sphinx_favicon"]
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -32,9 +32,12 @@ exclude_patterns = []
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
-html_sidebars = {
-    "**": []
-}
+html_sidebars = {"**": []}
+html_logo = "_static/icon.svg"
+
+favicons = ["favicon-16x16.png",
+            "favicon-32x32.png",
+            "favicon-128x128.png"]
 
 autodoc_default_options = {
     'members': True,
