@@ -1,4 +1,5 @@
-# OptiMask: Efficient NaN Data Removal in Python
+# ![Logo OptiMask](https://raw.githubusercontent.com/CyrilJl/OptiMask/main/docs/source/_static/icon.svg)
+OptiMask: Efficient NaN Data Removal in Python
 
 [![PyPI Version](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/optimask.svg)](https://anaconda.org/conda-forge/optimask)
 
