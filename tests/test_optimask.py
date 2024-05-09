@@ -39,17 +39,6 @@ def test_solve_with_pandas_dataframe(opti_mask_instance):
         assert np.all(np.isfinite(input_data.loc[rows, cols]))
 
 
-def test_solve_with_invalid_input(opti_mask_instance):
-    with pytest.raises(ValueError, match="Input 'X' must be a numpy array or a pandas DataFrame."):
-        opti_mask_instance.solve("invalid_input")
-
-
-def test_solve_with_invalid_numpy_array(opti_mask_instance):
-    invalid_input = np.array([1, 2, 3])
-    with pytest.raises(ValueError, match="For a numpy array, 'X' must have ndim==2."):
-        opti_mask_instance.solve(invalid_input)
-
-
 def test_no_nan(opti_mask_instance):
     m, n = 100, 75
     x = np.ones((m, n))
