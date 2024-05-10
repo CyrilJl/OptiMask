@@ -11,10 +11,12 @@ build:
   tools:
     python: "3.10"
     python: "mambaforge-22.9"
-    # You can also specify other tool versions:
-    # nodejs: "19"
-    # rust: "1.64"
-    # golang: "1.19"
+
+python:
+  install:
+    - requirements: docs/requirements.txt  # requirements file for the documentation build
+    - method: setuptools  # runs setup.py
+      path: .
 
 conda:
   environment: docs/environment.yml
