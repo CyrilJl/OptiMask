@@ -14,7 +14,7 @@ build:
 
 python:
   install:
-    - requirements: docs/requirements.txt  # requirements file for the documentation build
+    - requirements: docs/environment.yml
     - method: setuptools  # runs setup.py
       path: .
 
