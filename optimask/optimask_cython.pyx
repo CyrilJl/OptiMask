@@ -3,15 +3,17 @@
 import numpy as np
 cimport numpy as np
 
-cpdef np.ndarray[np.int32_t] groupby_max(np.ndarray[np.int32_t, ndim=1] a, np.ndarray[np.int32_t, ndim=1] b):
+ctypedef np.int64_t DTYPE_INT_t
+
+cpdef np.ndarray[DTYPE_INT_t, ndim=1] groupby_max(np.ndarray[DTYPE_INT_t, ndim=1] a, np.ndarray[DTYPE_INT_t, ndim=1] b):
     cdef int n = a.max()
-    cdef np.ndarray[np.int32_t] ret = np.zeros(n + 1, dtype=np.int32)
+    cdef np.ndarray[DTYPE_INT_t, ndim=1] ret = np.zeros(n + 1, dtype=np.int64)
     cdef int i
     for i in range(a.shape[0]):
-        ret[a[i]] = max(ret[a[i]], b[i])
-    return (ret + 1).astype(np.int32)
+        ret[a[i]] = max(ret[a[i]], b[i] + 1)
+    return ret
 
-cpdef bint is_decreasing(np.ndarray[np.int32_t, ndim=1] x):
+cpdef bint is_decreasing(np.ndarray[DTYPE_INT_t, ndim=1] x):
     cdef int n = x.shape[0]
     cdef int i
     for i in range(n - 1):
@@ -19,9 +21,9 @@ cpdef bint is_decreasing(np.ndarray[np.int32_t, ndim=1] x):
             return False
     return True
 
-def permutation_index(np.ndarray[np.int32_t, ndim=1] p):
+cpdef np.ndarray[DTYPE_INT_t, ndim=1] permutation_index(np.ndarray[DTYPE_INT_t, ndim=1] p):
     cdef int i
-    cdef int[:] s = np.empty(p.size, dtype=np.int32)
+    cdef np.ndarray[DTYPE_INT_t, ndim=1] s = np.empty(p.size, dtype=np.int64)
     for i in range(p.size):
         s[p[i]] = i
-    return np.array(s)
+    return s
