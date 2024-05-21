@@ -77,12 +77,14 @@ class OptiMask:
     def _is_pareto_ordered(cls, hx, hy):
         return is_decreasing(hx) and is_decreasing(hy)
 
-    def _trial(self, p_rows, p_cols, iy, ix, m, n):
+    def _trial(self, rng, m_nan, n_nan, iy, ix, m, n):
+        p_rows = rng.permutation(m_nan)
+        p_cols = rng.permutation(n_nan)
         iy_trial = permutation_index(p_rows)[iy]
         ix_trial = permutation_index(p_cols)[ix]
 
         step = 0
-        h0, h1 = groupby_max(iy_trial, ix_trial), groupby_max(ix_trial, iy_trial)
+        h0, h1 = groupby_max(iy_trial, ix_trial, m_nan), groupby_max(ix_trial, iy_trial, n_nan)
         while (not self._is_pareto_ordered(h0, h1)) and (step < self.max_steps):
             axis = (step % 2)
             step += 1
@@ -90,12 +92,12 @@ class OptiMask:
                 p_step = self._sort_by_na_max_index(h0)
                 iy_trial = permutation_index(p_step)[iy_trial]
                 p_rows = p_rows[p_step]
-                h0, h1 = h0[p_step], groupby_max(ix_trial, iy_trial)
+                h0, h1 = h0[p_step], groupby_max(ix_trial, iy_trial, n_nan)
             if axis == 1:
                 p_step = self._sort_by_na_max_index(h1)
                 ix_trial = permutation_index(p_step)[ix_trial]
                 p_cols = p_cols[p_step]
-                h0, h1 = groupby_max(iy_trial, ix_trial), h1[p_step]
+                h0, h1 = groupby_max(iy_trial, ix_trial, m_nan), h1[p_step]
 
         if not self._is_pareto_ordered(h0, h1):
             raise ValueError("An error occurred while calculating optimal permutations. "
@@ -116,10 +118,8 @@ class OptiMask:
             m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
 
             area_max = -1
-            for k in range(self.n_tries):
-                p_rows = rng.permutation(m_nan)
-                p_cols = rng.permutation(n_nan)
-                area, i0, j0, p_rows, p_cols = self._trial(p_rows, p_cols, iy, ix, m, n)
+            for k in range(self.n_tries):                
+                area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
                 self._verbose(f"\tTrial {k+1} : submatrix of size {m-j0}x{n-i0} ({area} elements) found.")
                 if area > area_max:
                     area_max = area
