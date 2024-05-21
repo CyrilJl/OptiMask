@@ -78,8 +78,8 @@ class OptiMask:
         return is_decreasing(hx) and is_decreasing(hy)
 
     def _trial(self, rng, m_nan, n_nan, iy, ix, m, n):
-        p_rows = rng.permutation(m_nan)
-        p_cols = rng.permutation(n_nan)
+        p_rows = rng.permutation(m_nan).astype(np.int64)
+        p_cols = rng.permutation(n_nan).astype(np.int64)
         iy_trial = permutation_index(p_rows)[iy]
         ix_trial = permutation_index(p_cols)[ix]
 
