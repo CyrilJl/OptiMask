@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='optimask',
-      version='1.1.1c',
+      version='1.1.1d',
       packages=find_packages(),
       install_requires=['numpy', 'pandas'],
       description="OptiMask: extracting the largest (non-contiguous) submatrix without NaN",
@@ -17,7 +17,5 @@ setup(name='optimask',
       classifiers=['License :: OSI Approved :: MIT License'],
       ext_modules=[Extension("optimask.optimask_cython",
                              sources=["optimask/optimask_cython.pyx"],
-                             include_dirs=[np.get_include()])],
-      package_data={'optimask': ['*.pxd', '*.pyx', '*.c']},
-      extra_compile_args=["-std=c99"]
+                             include_dirs=[np.get_include()])]
       )
