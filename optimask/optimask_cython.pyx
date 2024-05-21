@@ -5,9 +5,8 @@ cimport numpy as np
 
 ctypedef np.int64_t DTYPE_INT_t
 
-cpdef np.ndarray[DTYPE_INT_t, ndim=1] groupby_max(np.ndarray[DTYPE_INT_t, ndim=1] a, np.ndarray[DTYPE_INT_t, ndim=1] b):
-    cdef int n = a.max()
-    cdef np.ndarray[DTYPE_INT_t, ndim=1] ret = np.zeros(n + 1, dtype=np.int64)
+cpdef np.ndarray[DTYPE_INT_t, ndim=1] groupby_max(np.ndarray[DTYPE_INT_t, ndim=1] a, np.ndarray[DTYPE_INT_t, ndim=1] b, int size):
+    cdef np.ndarray[DTYPE_INT_t, ndim=1] ret = np.zeros(size, dtype=np.int64)
     cdef int i
     for i in range(a.shape[0]):
         ret[a[i]] = max(ret[a[i]], b[i] + 1)
