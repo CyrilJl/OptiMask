@@ -65,7 +65,7 @@ class OptiMask:
 
     @staticmethod
     def _sort_by_na_max_index(height: np.ndarray) -> np.ndarray:
-        return np.argsort(-height, kind='mergesort').astype(np.int32)
+        return np.argsort(-height, kind='mergesort')
 
     @staticmethod
     def _get_largest_rectangle(heights, m, n):
@@ -113,7 +113,6 @@ class OptiMask:
             rng = np.random.default_rng(seed=self.random_state)
             rows_with_nan, iy = np.unique(iy, return_inverse=True)
             cols_with_nan, ix = np.unique(ix, return_inverse=True)
-            iy, ix = iy.astype(np.int32), ix.astype(np.int32)
             m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
 
             area_max = -1
