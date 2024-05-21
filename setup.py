@@ -17,5 +17,6 @@ setup(name='optimask',
       classifiers=['License :: OSI Approved :: MIT License'],
       ext_modules=[Extension("optimask.optimask_cython",
                              sources=["optimask/optimask_cython.pyx"],
-                             include_dirs=[np.get_include()])]
+                             include_dirs=[np.get_include()])],
+      package_data={'optimask': ['*.pxd', '*.pyx', '*.c']}
       )
