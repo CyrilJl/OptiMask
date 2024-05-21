@@ -5,7 +5,7 @@ What's New?
 
 Version 1.1 (May 10, 2024)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-- cython parts are introduces to replace bottleneck pure python implementations (`groupby_max`)
+- cython parts are introduced to replace bottleneck pure python implementations (`groupby_max`)
 
 
 Future Developments
