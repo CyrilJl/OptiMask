@@ -1,1 +1,2 @@
 include optimask/optimask_cython.pyx
+include optimask/optimask_cython.c
