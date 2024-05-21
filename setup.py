@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='optimask',
-    version='1.1',
+    version='1.2',
     packages=find_packages(),
     install_requires=['numpy', 'pandas', 'cython'],
     description="OptiMask: extracting the largest (non-contiguous) submatrix without NaN",
