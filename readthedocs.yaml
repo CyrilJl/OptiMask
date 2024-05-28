@@ -4,13 +4,14 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "mambaforge-22.9"
+  jobs:
+    pre_install:
+      - python setup.py build_ext --inplace
 
 conda:
   environment: docs/environment.yml
 
 python:
-  pre_install:
-    - python setup.py build_ext --inplace
   install:
     - method: setuptools  # runs setup.py
       path: .
