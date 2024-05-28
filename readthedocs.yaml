@@ -6,7 +6,7 @@ build:
     python: "mambaforge-22.9"
   jobs:
     pre_install:
-      - python setup.py build_ext --inplace
+      - cython optimask/optimask_cython.pyx
 
 conda:
   environment: docs/environment.yml
