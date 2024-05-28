@@ -9,7 +9,7 @@ conda:
   environment: docs/environment.yml
 
 python:
-  before_install:
+  pre_install:
     - python setup.py build_ext --inplace
   install:
     - method: setuptools  # runs setup.py
