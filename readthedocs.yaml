@@ -4,16 +4,15 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "mambaforge-22.9"
-  commands:
-    - python setup.py build_ext --inplace
-
-python:
-  install:
-    - method: setuptools  # runs setup.py
-      path: .
 
 conda:
   environment: docs/environment.yml
+
+python:
+  install:
+    - method: setup.py build_ext --inplace
+    - method: setuptools  # runs setup.py
+      path: .
 
 sphinx:
   configuration: docs/source/conf.py
