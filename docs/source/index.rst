@@ -7,7 +7,6 @@ OptiMask Documentation
    :hidden:
    :maxdepth: 1   
 
-   introduction
    notebook
    api_reference
    future
@@ -21,3 +20,39 @@ submatrix without NaN is utilized for training models.
 
 The problem differs from the computation of the largest rectangles of 1s in a binary matrix (which can be tackled with dynamic programming)
 and requires a novel approach.
+
+Basic Usage
+-----------
+
+To use OptiMask, you can create an instance of the ``OptiMask`` class and apply the ``solve`` method to find the optimal rows and
+columns for a given 2D array or DataFrame. Here's a basic example:
+
+.. code-block:: python
+
+   from optimask import OptiMask
+   import numpy as np
+
+   # Create a matrix with NaN values
+   data = np.zeros((60, 25))
+   data[17, 5:15] = np.nan
+   data[40:50, 8] = np.nan
+
+   # Solve for the largest submatrix without NaN values
+   rows, cols = OptiMask().solve(data)
+
+   # Print the results
+   print(f"Optimal Rows: {rows}")
+   print(f"Optimal Columns: {cols}")
+
+.. image:: _static/example0.png
+   :alt: Example Image
+   :align: left
+
+
+For more detailed information on the parameters and usage, refer to the :ref:`API reference <api_reference>`.
+
+
+Repository
+----------
+
+The source code of the package is available at `<https://github.com/CyrilJl/OptiMask>`_.
