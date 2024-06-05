@@ -20,6 +20,7 @@ OptiMask Documentation
    api_reference
    future
 
+
 ``OptiMask`` is a Python package designed for efficiently handling NaN values in matrices, specifically focusing on computing the largest
 non-contiguous submatrix without NaN. In contrast to optimal but computationally expensive linear programming approaches, OptiMask
 employs a heuristic method, relying solely on Numpy for speed and efficiency. In machine learning applications, OptiMask surpasses
