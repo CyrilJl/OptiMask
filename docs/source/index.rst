@@ -1,8 +1,5 @@
 .. _Optimask:
 
-OptiMask Documentation
-######################
-
 .. image:: https://img.shields.io/pypi/v/optimask.svg
     :target: https://pypi.org/project/optimask
 
@@ -11,6 +8,9 @@ OptiMask Documentation
 
 .. image:: https://anaconda.org/conda-forge/optimask/badges/downloads.svg
     :target: https://anaconda.org/conda-forge/optimask
+
+OptiMask Documentation
+######################
 
 .. toctree::
    :hidden:
