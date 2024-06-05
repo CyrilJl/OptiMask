@@ -44,12 +44,12 @@ columns for a given 2D array or DataFrame. Here's a basic example:
    print(f"Optimal Rows: {rows}")
    print(f"Optimal Columns: {cols}")
 
-The grey cells represent the NaN locations, the blue ones the valid data, and the red ones the rows and columns removed by the algorithm:
+The grey cells represent the NaN locations, the blue ones represent the valid data, and the red ones represent the rows and columns removed by the algorithm:
 
 .. image:: _static/example0.png
    :alt: Example Image 1
 
-``OptiMask``'s algorithm is useful for unstructured NaNs patterns, as in the following example:
+``OptiMask``'s algorithm is useful for handling unstructured NaN patterns, as shown in the following example:
 
 .. image:: _static/example2.png
    :alt: Example Image 2
