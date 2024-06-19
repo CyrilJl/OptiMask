@@ -26,7 +26,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pandas numpy cython
         cython optimask/optimask_cython.pyx
-        python setup.py sdist
         pip install -e .
 
     - name: Run Pytest
