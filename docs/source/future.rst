@@ -3,6 +3,10 @@
 What's New?
 ###########
 
+Version 1.2 (June 19, 2024)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- ``np.isnan(x).nonzero()`` replaced by ``np.unravel_index(np.flatnonzero(np.isnan(x)), x.shape)``, 2x faster
+
 Version 1.1 (May 10, 2024)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - cython parts are introduced to replace bottleneck pure python implementations (`groupby_max`)
