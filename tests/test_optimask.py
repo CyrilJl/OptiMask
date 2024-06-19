@@ -46,4 +46,4 @@ def test_no_nan(opti_mask_instance):
     assert np.allclose(r, np.arange(m))
     assert np.allclose(c, np.arange(n))
 
-    assert np.allcose(x, opti_mask_instance.solve(x, return_data=True))
+    assert np.allclose(x, opti_mask_instance.solve(x, return_data=True))
