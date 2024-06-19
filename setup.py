@@ -23,7 +23,7 @@ setup(
     name='optimask',
     version=read_version(),
     packages=find_packages(),
-    url='https://optimask.readthedocs.io,
+    url='https://optimask.readthedocs.io',
     install_requires=['numpy', 'pandas'],
     setup_requires=['numpy'],
     description="OptiMask: extracting the largest (non-contiguous) submatrix without NaN",
