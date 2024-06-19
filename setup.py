@@ -4,8 +4,6 @@ import re
 import numpy as np
 from setuptools import Extension, find_packages, setup
 
-# Function to read the version from the __init__.py file
-
 
 def read_version():
     with open(os.path.join("optimask", "__init__.py"), "r") as f:
@@ -23,10 +21,11 @@ with open("README.md", "r") as fh:
 # Setup configuration
 setup(
     name='optimask',
-    version=read_version(),  # Read version from __init__.py
+    version=read_version(),
     packages=find_packages(),
+    url='https://optimask.readthedocs.io,
     install_requires=['numpy', 'pandas'],
-    setup_requires=['numpy'],  # Ensure NumPy is available during build
+    setup_requires=['numpy'],
     description="OptiMask: extracting the largest (non-contiguous) submatrix without NaN",
     long_description_content_type='text/markdown',
     long_description=long_description,
