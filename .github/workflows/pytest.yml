@@ -29,7 +29,6 @@ jobs:
     - name: Install optimask
       run: |
         cython optimask/optimask_cython.pyx
-        tree
         python setup.py install
 
     - name: Run Pytest
