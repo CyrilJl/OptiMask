@@ -31,7 +31,6 @@ setup(
     long_description=long_description,
     author='Cyril Joly',
     license='MIT',
-    url='https://github.com/CyrilJl/optimask',
     classifiers=['License :: OSI Approved :: MIT License'],
     ext_modules=[
         Extension(
