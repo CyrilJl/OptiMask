@@ -27,6 +27,7 @@ jobs:
         pip install pytest pandas numpy cython
 
     - name: Install optimask
+      run: |
         cython optimask/optimask_cython.pyx
         pip install -e .
 
