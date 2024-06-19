@@ -108,7 +108,7 @@ class OptiMask:
 
     def _solve(self, x):
         m, n = x.shape
-        iy, ix = np.isnan(x).nonzero()
+        iy, ix = np.unravel_index(np.flatnonzero(np.isnan(x)), x.shape)
         if len(iy) == 0:
             return np.arange(m), np.arange(n)
         else:
