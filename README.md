@@ -59,6 +59,14 @@ print(f"Coverage Ratio: {coverage_ratio:.2f}, Has NaN Values: {has_nan_values}")
 # Output: Coverage Ratio: 0.85, Has NaN Values: False
 ```
 
+The grey cells represent the NaN locations, the blue ones represent the valid data, and the red ones represent the rows and columns removed by the algorithm:
+
+<img src="docs/source/_static/example0.png" width="400">
+
+OptiMask’s algorithm is useful for handling unstructured NaN patterns, as shown in the following example:
+
+<img src="docs/source/_static/example2.png" width="400">
+
 ## Documentation
 
 For detailed documentation, including installation instructions, API usage, and examples, visit [OptiMask Documentation](https://optimask.readthedocs.io/en/latest/index.html).
