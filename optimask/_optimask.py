@@ -117,9 +117,9 @@ class OptiMask:
             cols_with_nan, ix = np.unique(ix, return_inverse=True)
             m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
 
-            if len(m_nan) == 1:
+            if m_nan == 1:
                 return np.setdiff1d(np.arange(m), rows_with_nan), np.arange(n)
-            elif len(n_nan) == 1:
+            elif n_nan == 1:
                 return np.arange(m), np.setdiff1d(np.arange(n), cols_with_nan)
             else:
                 area_max = -1
