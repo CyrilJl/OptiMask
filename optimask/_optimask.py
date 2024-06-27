@@ -120,26 +120,21 @@ class OptiMask:
             rows_with_nan, iy = np.unique(iy, return_inverse=True)
             cols_with_nan, ix = np.unique(ix, return_inverse=True)
             m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
+            
+            area_max = -1
+            for k in range(self.n_tries):
+                area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
+                self._verbose(f"\tTrial {k+1} : submatrix of size {m-j0}x{n-i0} ({area} elements) found.")
+                if area > area_max:
+                    area_max = area
+                    opt = i0, j0, p_rows, p_cols
 
-            if m_nan == 1:
-                return np.setdiff1d(np.arange(m), rows_with_nan), np.arange(n)
-            elif n_nan == 1:
-                return np.arange(m), np.setdiff1d(np.arange(n), cols_with_nan)
-            else:
-                area_max = -1
-                for k in range(self.n_tries):
-                    area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
-                    self._verbose(f"\tTrial {k+1} : submatrix of size {m-j0}x{n-i0} ({area} elements) found.")
-                    if area > area_max:
-                        area_max = area
-                        opt = i0, j0, p_rows, p_cols
+            i0, j0, p_rows, p_cols = opt
+            self._verbose(f"Result: the largest submatrix found is of size {m-j0}x{n-i0} ({area_max} elements) found.")
 
-                i0, j0, p_rows, p_cols = opt
-                self._verbose(f"Result: the largest submatrix found is of size {m-j0}x{n-i0} ({area_max} elements) found.")
-
-                rows_to_keep = np.setdiff1d(np.arange(m), rows_with_nan[p_rows[:j0]])
-                cols_to_keep = np.setdiff1d(np.arange(n), cols_with_nan[p_cols[:i0]])
-                return rows_to_keep, cols_to_keep
+            rows_to_keep = np.setdiff1d(np.arange(m), rows_with_nan[p_rows[:j0]])
+            cols_to_keep = np.setdiff1d(np.arange(n), cols_with_nan[p_cols[:i0]])
+            return rows_to_keep, cols_to_keep
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
