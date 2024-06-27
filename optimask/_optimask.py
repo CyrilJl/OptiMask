@@ -111,6 +111,10 @@ class OptiMask:
         iy, ix = np.unravel_index(np.flatnonzero(np.isnan(x)), x.shape)
         if len(iy) == 0:
             return np.arange(m), np.arange(n)
+        elif m == 1:
+            return np.arange(m), np.flatnonzero(np.isfinite(x.ravel()))
+        elif n == 1:
+            return np.flatnonzero(np.isfinite(x.ravel())), np.arange(n)
         else:
             rng = np.random.default_rng(seed=self.random_state)
             rows_with_nan, iy = np.unique(iy, return_inverse=True)
