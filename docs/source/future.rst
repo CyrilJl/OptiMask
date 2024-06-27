@@ -6,6 +6,7 @@ What's New?
 Version 1.2 (June 19, 2024)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - ``np.isnan(x).nonzero()`` replaced by ``np.unravel_index(np.flatnonzero(np.isnan(x)), x.shape)``, 2x faster
+- fix bug when data inputed has only one row
 
 Version 1.1 (May 10, 2024)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
