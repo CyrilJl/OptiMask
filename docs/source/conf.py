@@ -7,7 +7,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'OptiMask'
-copyright = '2024, Cyril Joly'
 author = 'Cyril Joly'
 
 # -- General configuration ---------------------------------------------------
