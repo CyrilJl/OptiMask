@@ -6,14 +6,6 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import sys
-from pathlib import Path
-
-# Obtenir le chemin absolu du dossier parent du dossier parent du fichier actuel
-path = str(Path(__file__).resolve().parent.parent.parent)
-print(path)
-# sys.path.insert(0, path)
-
 project = 'OptiMask'
 copyright = '2024, Cyril Joly'
 author = 'Cyril Joly'
