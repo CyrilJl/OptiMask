@@ -4,9 +4,6 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "mambaforge-22.9"
-  jobs:
-    pre_install:
-      - cython optimask/optimask_cython.pyx
 
 conda:
   environment: docs/environment.yml

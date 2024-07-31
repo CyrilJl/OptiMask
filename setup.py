@@ -1,8 +1,7 @@
 import os
 import re
 
-import numpy as np
-from setuptools import Extension, find_packages, setup
+from setuptools import find_packages, setup
 
 
 def read_version():
@@ -24,19 +23,11 @@ setup(
     version=read_version(),
     packages=find_packages(),
     url='https://optimask.readthedocs.io',
-    install_requires=['numpy', 'pandas'],
-    setup_requires=['numpy'],
+    install_requires=['numpy', 'pandas', 'numba'],
     description="OptiMask: extracting the largest (non-contiguous) submatrix without NaN",
     long_description_content_type='text/markdown',
     long_description=long_description,
     author='Cyril Joly',
     license='MIT',
     classifiers=['License :: OSI Approved :: MIT License'],
-    ext_modules=[
-        Extension(
-            "optimask.optimask_cython",
-            sources=["optimask/optimask_cython.c"],
-            include_dirs=[np.get_include()]
-        )
-    ]
 )

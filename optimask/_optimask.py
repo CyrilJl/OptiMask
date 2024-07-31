@@ -7,65 +7,119 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
+from numba import bool_, float64, njit, prange, uint32
+from numba.types import UniTuple
 
 from ._misc import check_params, warning
-from .optimask_cython import groupby_max, is_decreasing, permutation_index
 
 __all__ = ["OptiMask"]
 
 
 class OptiMask:
     """
-    OptiMask is a class for calculating the optimal rows and columns to retain in a 2D array or DataFrame
-    to remove NaN values and preserve the maximum number of non-NaN cells.
-    The class uses a heuristic optimization approach, and increasing the value of `n_tries` generally leads to better results,
-    potentially reaching or closely approaching the optimal quantity.
+    A class to solve the optimal problem of removing NaNs for a 2D array or DataFrame.
 
-    Parameters:
-        n_tries (int): The number of optimization attempts. Higher values may lead to better results.
-        max_steps (int): The maximum number of steps to perform in each optimization attempt.
-        random_state (Union[int, None]): Seed for the random number generator.
-        verbose (bool): If True, print verbose information during optimization.
+    Attributes:
+        n_tries (int): Number of tries to find the optimal solution.
+        max_steps (int): Maximum number of steps for the optimization process.
+        random_state (int, optional): Seed for the random number generator to ensure reproducibility.
+        verbose (bool): If True, prints detailed information about the optimization process.
 
-    .. code-block:: python
-
-        from optimask import OptiMask
-        import numpy as np
-
-        # Create a matrix with NaN values
-        m = 120
-        n = 7
-        data = np.zeros(shape=(m, n))
-        data[24:72, 3] = np.nan
-        data[95, :5] = np.nan
-
-        # Solve for the largest submatrix without NaN values
-        rows, cols = OptiMask().solve(data)
-
-        # Calculate the ratio of non-NaN values in the result
-        coverage_ratio = len(rows) * len(cols) / data.size
-
-        # Check if there are any NaN values in the selected submatrix
-        has_nan_values = np.isnan(data[rows][:, cols]).any()
-
-        # Print or display the results
-        print(f"Coverage Ratio: {coverage_ratio:.2f}, Has NaN Values: {has_nan_values}")
-        # Output: Coverage Ratio: 0.85, Has NaN Values: False
     """
 
-    def __init__(self, n_tries=5, max_steps=32, random_state=None, verbose=False):
+    def __init__(self, n_tries=5, max_steps=16, random_state=None, verbose=False):
         self.n_tries = n_tries
         self.max_steps = max_steps
         self.random_state = random_state
         self.verbose = bool(verbose)
+
+    @staticmethod
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
+    def groupby_max(a, b, n):
+        size_a = len(a)
+        ret = np.zeros(n, dtype=np.uint32)
+        for k in range(size_a):
+            ak = a[k]
+            ret[ak] = max(ret[ak], b[k]+1)
+        return ret
+
+    @staticmethod
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False)
+    def cross_groupby_max(a, b, m, n):
+        size_a = len(a)
+        size_b = len(b)
+        s = max(size_a, size_b)
+        ret_a = np.zeros(m, dtype=np.uint32)
+        ret_b = np.zeros(n, dtype=np.uint32)
+        for k in range(s):
+            ak = a[k]
+            bk = b[k]
+            if k < size_a:
+                ret_a[ak] = max(ret_a[ak], bk+1)
+            if k < size_b:
+                ret_b[bk] = max(ret_b[bk], ak+1)
+        return ret_a, ret_b
 
     def _verbose(self, msg):
         if self.verbose:
             warning(msg)
 
     @staticmethod
-    def _sort_by_na_max_index(height: np.ndarray) -> np.ndarray:
-        return np.argsort(-height, kind='mergesort')
+    @njit(bool_(uint32[:]), boundscheck=False)
+    def is_decreasing(h):
+        for i in range(len(h) - 1):
+            if h[i] < h[i + 1]:
+                return False
+        return True
+
+    @classmethod
+    def is_pareto_ordered(cls, hy, hx):
+        return cls.is_decreasing(hx) and cls.is_decreasing(hy)
+
+    @staticmethod
+    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    def numba_apply_permutation(p, x):
+        n = p.size
+        m = x.size
+        rank = np.empty(n, dtype=np.uint32)
+        result = np.empty(m, dtype=np.uint32)
+
+        for i in prange(n):
+            rank[p[i]] = i
+
+        for i in prange(m):
+            result[i] = rank[x[i]]
+        return result
+
+    @staticmethod
+    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    def numba_apply_permutation_inplace(p, x):
+        n = p.size
+        rank = np.empty(n, dtype=np.uint32)
+
+        for i in prange(n):
+            rank[p[i]] = i
+
+        for i in prange(x.size):
+            x[i] = rank[x[i]]
+
+    @classmethod
+    def apply_permutation(cls, p, x, inplace: bool):
+        if inplace:
+            cls.numba_apply_permutation_inplace(p, x)
+        else:
+            return cls.numba_apply_permutation(p, x)
+
+    @staticmethod
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    def apply_p_step(p_step, a, b):
+        ret_a = np.empty(a.size, dtype=np.uint32)
+        ret_b = np.empty(b.size, dtype=np.uint32)
+        for k in prange(a.size):
+            pk = p_step[k]
+            ret_a[k] = a[pk]
+            ret_b[k] = b[pk]
+        return ret_a, ret_b
 
     @staticmethod
     def _get_largest_rectangle(heights, m, n):
@@ -73,42 +127,73 @@ class OptiMask:
         i0 = np.argmax(areas)
         return i0, heights[i0], areas[i0]
 
-    @classmethod
-    def _is_pareto_ordered(cls, hx, hy):
-        return is_decreasing(hx) and is_decreasing(hy)
+    @staticmethod
+    @njit(UniTuple(uint32[:], 4)(float64[:, :],), boundscheck=False)
+    def _preprocess(x):
+        m, n = x.shape
+        iy, ix = [], []
+        cols_index_mapper = -np.ones(n)
+        rows_with_nan = np.zeros(m, dtype=np.bool_)
+        n_rows_with_nan = 0
+        n_cols_with_nan = 0
+        for i in range(m):
+            for j in range(n):
+                if np.isnan(x[i, j]):
+                    rows_with_nan[i] = True
+
+                    iy.append(n_rows_with_nan)
+
+                    if cols_index_mapper[j] >= 0:
+                        ix.append(cols_index_mapper[j])
+                    else:
+                        ix.append(n_cols_with_nan)
+                        cols_index_mapper[j] = n_cols_with_nan
+                        n_cols_with_nan += 1
+
+            if rows_with_nan[i]:
+                n_rows_with_nan += 1
+
+        iy, ix = np.array(iy).astype(np.uint32), np.array(ix).astype(np.uint32)
+        rows_with_nan = np.flatnonzero(rows_with_nan).astype(np.uint32)
+        cols_with_nan = np.flatnonzero(cols_index_mapper >= 0)[cols_index_mapper[cols_index_mapper >= 0].argsort()].astype(np.uint32)
+        return iy, ix, rows_with_nan, cols_with_nan
 
     def _trial(self, rng, m_nan, n_nan, iy, ix, m, n):
-        p_rows = rng.permutation(m_nan).astype(np.int64)
-        p_cols = rng.permutation(n_nan).astype(np.int64)
-        iy_trial = permutation_index(p_rows)[iy]
-        ix_trial = permutation_index(p_cols)[ix]
+        p_rows = rng.permutation(m_nan).astype(np.uint32)
+        p_cols = rng.permutation(n_nan).astype(np.uint32)
+        iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
+        ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
 
+        hy, hx = self.cross_groupby_max(iy_trial, ix_trial, m_nan, n_nan)
         step = 0
-        h0, h1 = groupby_max(iy_trial, ix_trial, m_nan), groupby_max(ix_trial, iy_trial, n_nan)
-        while (not self._is_pareto_ordered(h0, h1)) and (step < self.max_steps):
-            axis = (step % 2)
+        is_pareto_ordered = False
+        while not is_pareto_ordered and step < self.max_steps:
+            axis = step % 2
             step += 1
             if axis == 0:
-                p_step = self._sort_by_na_max_index(h0)
-                iy_trial = permutation_index(p_step)[iy_trial]
-                p_rows = p_rows[p_step]
-                h0, h1 = h0[p_step], groupby_max(ix_trial, iy_trial, n_nan)
-            if axis == 1:
-                p_step = self._sort_by_na_max_index(h1)
-                ix_trial = permutation_index(p_step)[ix_trial]
-                p_cols = p_cols[p_step]
-                h0, h1 = groupby_max(iy_trial, ix_trial, m_nan), h1[p_step]
+                p_step = (-hy).argsort().astype(np.uint32)
+                self.apply_permutation(p_step, iy_trial, inplace=True)
+                p_rows, hy = self.apply_p_step(p_step, p_rows, hy)
+                hx = self.groupby_max(ix_trial, iy_trial, n_nan)
+                is_pareto_ordered = self.is_decreasing(hx)
+            else:
+                p_step = (-hx).argsort().astype(np.uint32)
+                self.apply_permutation(p_step, ix_trial, inplace=True)
+                hy = self.groupby_max(iy_trial, ix_trial, m_nan)
+                p_cols, hx = self.apply_p_step(p_step, p_cols, hx)
+                is_pareto_ordered = self.is_decreasing(hy)
 
-        if not self._is_pareto_ordered(h0, h1):
+        if not self.is_pareto_ordered(hy, hx):
             raise ValueError("An error occurred while calculating optimal permutations. "
                              "You can try again with a larger `max_steps` value.")
         else:
-            i0, j0, area = self._get_largest_rectangle(h1, m, n)
+            i0, j0, area = self._get_largest_rectangle(hx, m, n)
             return area, i0, j0, p_rows, p_cols
 
     def _solve(self, x):
         m, n = x.shape
-        iy, ix = np.unravel_index(np.flatnonzero(np.isnan(x)), x.shape)
+        iy, ix, rows_with_nan, cols_with_nan = self._preprocess(x)
+        m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
         if len(iy) == 0:
             return np.arange(m), np.arange(n)
         elif m == 1:
@@ -117,10 +202,6 @@ class OptiMask:
             return np.flatnonzero(np.isfinite(x.ravel())), np.arange(n)
         else:
             rng = np.random.default_rng(seed=self.random_state)
-            rows_with_nan, iy = np.unique(iy, return_inverse=True)
-            cols_with_nan, ix = np.unique(ix, return_inverse=True)
-            m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
-            
             area_max = -1
             for k in range(self.n_tries):
                 area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
@@ -132,8 +213,8 @@ class OptiMask:
             i0, j0, p_rows, p_cols = opt
             self._verbose(f"Result: the largest submatrix found is of size {m-j0}x{n-i0} ({area_max} elements) found.")
 
-            rows_to_keep = np.setdiff1d(np.arange(m), rows_with_nan[p_rows[:j0]])
-            cols_to_keep = np.setdiff1d(np.arange(n), cols_with_nan[p_cols[:i0]])
+            rows_to_keep = np.setdiff1d(np.arange(m, dtype=np.uint32), rows_with_nan[p_rows[:j0]])
+            cols_to_keep = np.setdiff1d(np.arange(n, dtype=np.uint32), cols_with_nan[p_cols[:i0]])
             return rows_to_keep, cols_to_keep
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
