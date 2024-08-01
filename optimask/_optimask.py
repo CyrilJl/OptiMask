@@ -7,7 +7,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from numba import bool_, float64, njit, prange, uint32
+from numba import bool_, njit, prange, uint32
 from numba.types import UniTuple
 
 from ._misc import check_params, warning
@@ -34,7 +34,7 @@ class OptiMask:
         self.verbose = bool(verbose)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def groupby_max(a, b, n):
         size_a = len(a)
         ret = np.zeros(n, dtype=np.uint32)
@@ -44,7 +44,7 @@ class OptiMask:
         return ret
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False, cache=True)
     def cross_groupby_max(a, b, m, n):
         size_a = len(a)
         size_b = len(b)
@@ -65,7 +65,7 @@ class OptiMask:
             warning(msg)
 
     @staticmethod
-    @njit(bool_(uint32[:]), boundscheck=False)
+    @njit(bool_(uint32[:]), boundscheck=False, cache=True)
     def is_decreasing(h):
         for i in range(len(h) - 1):
             if h[i] < h[i + 1]:
@@ -77,7 +77,7 @@ class OptiMask:
         return cls.is_decreasing(hx) and cls.is_decreasing(hy)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation(p, x):
         n = p.size
         m = x.size
@@ -92,7 +92,7 @@ class OptiMask:
         return result
 
     @staticmethod
-    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation_inplace(p, x):
         n = p.size
         rank = np.empty(n, dtype=np.uint32)
@@ -111,7 +111,7 @@ class OptiMask:
             return cls.numba_apply_permutation(p, x)
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def apply_p_step(p_step, a, b):
         ret_a = np.empty(a.size, dtype=np.uint32)
         ret_b = np.empty(b.size, dtype=np.uint32)
@@ -128,7 +128,7 @@ class OptiMask:
         return i0, heights[i0], areas[i0]
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 4)(float64[:, :],), boundscheck=False)
+    @njit(boundscheck=False, cache=True)
     def _preprocess(x):
         m, n = x.shape
         iy, ix = [], []
@@ -192,14 +192,29 @@ class OptiMask:
 
     def _solve(self, x):
         m, n = x.shape
+
+        if m == 1:
+            return np.arange(m), np.flatnonzero(np.isfinite(x.ravel()))
+        if n == 1:
+            return np.flatnonzero(np.isfinite(x.ravel())), np.arange(n)
+
         iy, ix, rows_with_nan, cols_with_nan = self._preprocess(x)
         m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
         if len(iy) == 0:
             return np.arange(m), np.arange(n)
-        elif m == 1:
-            return np.arange(m), np.flatnonzero(np.isfinite(x.ravel()))
-        elif n == 1:
-            return np.flatnonzero(np.isfinite(x.ravel())), np.arange(n)
+
+        if len(rows_with_nan) == 1:
+            if n-n_nan <= n_nan*(m-m_nan):
+                return np.setdiff1d(np.arange(m), rows_with_nan), np.arange(n)
+            else:
+                return np.arange(m), np.setdiff1d(np.arange(n), cols_with_nan)
+
+        if len(cols_with_nan) == 1:
+            if m-m_nan <= m_nan*(n-n_nan):
+                return np.arange(m), np.setdiff1d(np.arange(n), cols_with_nan)
+            else:
+                return np.setdiff1d(np.arange(m), rows_with_nan), np.arange(n)
+
         else:
             rng = np.random.default_rng(seed=self.random_state)
             area_max = -1
