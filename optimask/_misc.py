@@ -32,14 +32,11 @@ def warning(msg):
 
 class EmptyInputError(ValueError):
     """Raised when the input array or DataFrame is empty."""
-    pass
 
 
 class InvalidDimensionError(ValueError):
     """Raised when the input numpy array does not have exactly 2 dimensions."""
-    pass
 
 
 class OptiMaskAlgorithmError(ValueError):
     """Raised when the OptiMask algorithm encounters an error during optimization."""
-    pass

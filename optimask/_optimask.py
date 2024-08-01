@@ -204,7 +204,7 @@ class OptiMask:
             return np.arange(m), np.arange(n)
 
         if len(iy) == m*n:
-            self.verbose('The array is full of NaNs.')
+            self._verbose('The array is full of NaNs.')
             if m <= n:
                 return np.array([]), np.arange(n)
             else:
