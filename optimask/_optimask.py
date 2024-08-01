@@ -10,7 +10,7 @@ import pandas as pd
 from numba import bool_, njit, prange, uint32
 from numba.types import UniTuple
 
-from ._misc import check_params, warning
+from ._misc import EmptyInputError, InvalidDimensionError, OptiMaskAlgorithmError, check_params, warning
 
 __all__ = ["OptiMask"]
 
@@ -184,8 +184,8 @@ class OptiMask:
                 is_pareto_ordered = self.is_decreasing(hy)
 
         if not self.is_pareto_ordered(hy, hx):
-            raise ValueError("An error occurred while calculating optimal permutations. "
-                             "You can try again with a larger `max_steps` value.")
+            raise OptiMaskAlgorithmError("An error occurred while calculating optimal permutations. "
+                                         "You can try again with a larger `max_steps` value.")
         else:
             i0, j0, area = self._get_largest_rectangle(hx, m, n)
             return area, i0, j0, p_rows, p_cols
@@ -202,6 +202,13 @@ class OptiMask:
         m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
         if len(iy) == 0:
             return np.arange(m), np.arange(n)
+
+        if len(iy) == m*n:
+            self.verbose('The array is full of NaNs.')
+            if m <= n:
+                return np.array([]), np.arange(n)
+            else:
+                return np.arange(m), np.array([])
 
         if len(rows_with_nan) == 1:
             if n-n_nan <= n_nan*(m-m_nan):
@@ -249,12 +256,15 @@ class OptiMask:
         check_params(X, types=(np.ndarray, pd.DataFrame))
 
         if isinstance(X, np.ndarray) and X.ndim != 2:
-            raise ValueError("For a numpy array, 'X' must have ndim == 2.")
+            raise InvalidDimensionError("For a numpy array, 'X' must have ndim == 2.")
+
+        if X.size == 0:
+            raise EmptyInputError("`X` is empty.")
 
         rows, cols = self._solve(np.asarray(X))
 
         if np.isnan(np.asarray(X)[np.ix_(rows, cols)]).any():
-            raise ValueError("The OptiMask algorithm encountered an error.")
+            raise OptiMaskAlgorithmError("The OptiMask algorithm encountered an error.")
 
         if isinstance(X, pd.DataFrame):
             if return_data:
