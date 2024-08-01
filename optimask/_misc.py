@@ -28,3 +28,15 @@ def check_params(param, params=None, types=None):
 def warning(msg):
     # Trigger a warning with the provided message
     return warnings.warn(msg)
+
+
+class EmptyInputError(ValueError):
+    """Raised when the input array or DataFrame is empty."""
+
+
+class InvalidDimensionError(ValueError):
+    """Raised when the input numpy array does not have exactly 2 dimensions."""
+
+
+class OptiMaskAlgorithmError(ValueError):
+    """Raised when the OptiMask algorithm encounters an error during optimization."""
