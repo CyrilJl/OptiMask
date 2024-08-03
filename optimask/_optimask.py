@@ -251,7 +251,10 @@ class OptiMask:
             Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]: If return_data is True, returns the resulting 2D array or DataFrame; otherwise, returns the indices of rows and columns to retain.
 
         Raises:
-            ValueError: If the input data is not a numpy array or a pandas DataFrame, or if the input numpy array does not have ndim==2, or if the OptiMask algorithm encounters an error during optimization.
+            InvalidDimensionError: If the input numpy array does not have ndim==2.
+            EmptyInputError: If the input data is empty.
+            OptiMaskAlgorithmError: If the OptiMask algorithm encounters an error during optimization.
+            ValueError: If the input DataFrame's index contains non-unique entries.
         """
         check_params(X, types=(np.ndarray, pd.DataFrame))
 
