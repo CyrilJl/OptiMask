@@ -25,6 +25,7 @@ html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 html_sidebars = {"**": []}
 html_logo = "_static/icon.svg"
+html_show_sphinx = False
 
 favicons = ["favicon-16x16.png",
             "favicon-32x32.png",
