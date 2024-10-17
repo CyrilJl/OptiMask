@@ -34,7 +34,7 @@ class OptiMask:
         self.verbose = bool(verbose)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
     def groupby_max(a, b, n):
         size_a = len(a)
         ret = np.zeros(n, dtype=np.uint32)
@@ -44,7 +44,7 @@ class OptiMask:
         return ret
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False, cache=True)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False)
     def cross_groupby_max(a, b, m, n):
         size_a = len(a)
         size_b = len(b)
@@ -65,7 +65,7 @@ class OptiMask:
             warning(msg)
 
     @staticmethod
-    @njit(bool_(uint32[:]), boundscheck=False, cache=True)
+    @njit(bool_(uint32[:]), boundscheck=False)
     def is_decreasing(h):
         for i in range(len(h) - 1):
             if h[i] < h[i + 1]:
@@ -77,7 +77,7 @@ class OptiMask:
         return cls.is_decreasing(hx) and cls.is_decreasing(hy)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
+    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False)
     def numba_apply_permutation(p, x):
         n = p.size
         m = x.size
@@ -92,7 +92,7 @@ class OptiMask:
         return result
 
     @staticmethod
-    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
+    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False)
     def numba_apply_permutation_inplace(p, x):
         n = p.size
         rank = np.empty(n, dtype=np.uint32)
@@ -111,7 +111,7 @@ class OptiMask:
             return cls.numba_apply_permutation(p, x)
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False)
     def apply_p_step(p_step, a, b):
         ret_a = np.empty(a.size, dtype=np.uint32)
         ret_b = np.empty(b.size, dtype=np.uint32)
@@ -128,7 +128,7 @@ class OptiMask:
         return i0, heights[i0], areas[i0]
 
     @staticmethod
-    @njit(boundscheck=False, cache=True)
+    @njit(boundscheck=False)
     def _preprocess(x):
         m, n = x.shape
         iy, ix = [], []
