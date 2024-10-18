@@ -1,6 +1,11 @@
-# <img src="https://raw.githubusercontent.com/CyrilJl/OptiMask/main/docs/source/_static/icon.svg" alt="Logo OptiMask" width="200" height="200" align="right"> OptiMask: Efficient NaN Data Removal in Python
+[![PyPI Version](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/optimask.svg)](https://anaconda.org/conda-forge/optimask)
+[![Conda Downloads](https://anaconda.org/conda-forge/optimask/badges/downloads.svg)](https://anaconda.org/conda-forge/optimask)
+[![Documentation Status](https://img.shields.io/readthedocs/optimask?logo=read-the-docs)](https://optimask.readthedocs.io/en/latest/?badge=latest)
+[![Unit tests](https://github.com/CyrilJl/OptiMask/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/OptiMask/actions/workflows/pytest.yml)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bdca34283887428488957959bc1abcc1)](https://app.codacy.com/gh/CyrilJl/OptiMask?utm_source=github.com&utm_medium=referral&utm_content=CyrilJl/OptiMask&utm_campaign=Badge_Grade)
 
-[![PyPI Version](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/optimask.svg)](https://anaconda.org/conda-forge/optimask) [![Conda Downloads](https://anaconda.org/conda-forge/optimask/badges/downloads.svg)](https://anaconda.org/conda-forge/optimask) [![Documentation Status](https://img.shields.io/readthedocs/optimask?logo=read-the-docs)](https://optimask.readthedocs.io/en/latest/?badge=latest) [![Unit tests](https://github.com/CyrilJl/OptiMask/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/OptiMask/actions/workflows/pytest.yml) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bdca34283887428488957959bc1abcc1)](https://app.codacy.com/gh/CyrilJl/OptiMask?utm_source=github.com&utm_medium=referral&utm_content=CyrilJl/OptiMask&utm_campaign=Badge_Grade)
+# <img src="https://raw.githubusercontent.com/CyrilJl/OptiMask/main/docs/source/_static/icon.svg" alt="Logo OptiMask" width="200" height="200" align="right"> OptiMask: Efficient NaN Data Removal in Python
 
 OptiMask is a Python package designed to facilitate the process of removing NaN (Not-a-Number) data from matrices while efficiently computing the largest (and not necessarily contiguous) submatrix without NaN values. This tool prioritizes practicality and compatibility with Numpy arrays and Pandas DataFrames.
 
