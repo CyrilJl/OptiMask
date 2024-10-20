@@ -132,7 +132,7 @@ class OptiMask:
     def _preprocess(x):
         m, n = x.shape
         iy, ix = [], []
-        cols_index_mapper = -np.ones(n)
+        cols_index_mapper = -np.ones(n, dtype=np.int32)
         rows_with_nan = np.zeros(m, dtype=np.bool_)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
@@ -235,9 +235,32 @@ class OptiMask:
             i0, j0, p_rows, p_cols = opt
             self._verbose(f"Result: the largest submatrix found is of size {m-j0}x{n-i0} ({area_max} elements) found.")
 
-            rows_to_keep = np.setdiff1d(np.arange(m, dtype=np.uint32), rows_with_nan[p_rows[:j0]])
-            cols_to_keep = np.setdiff1d(np.arange(n, dtype=np.uint32), cols_with_nan[p_cols[:i0]])
+            rows_to_keep = self.compute_to_keep(size=m, index_with_nan=rows_with_nan, permutation=p_rows, split=j0)
+            cols_to_keep = self.compute_to_keep(size=n, index_with_nan=cols_with_nan, permutation=p_cols, split=i0)
             return rows_to_keep, cols_to_keep
+
+    @staticmethod
+    @njit(uint32[:](uint32, uint32[:], uint32[:], uint32), boundscheck=False)
+    def compute_to_keep(size, index_with_nan, permutation, split):
+        """
+        Faster version of `np.setdiff1d(np.arange(size, dtype=np.uint32), index_with_nan[permutation[:split]])`.
+        """
+        mask = np.zeros(size, dtype=np.uint8)
+        for i in range(split):
+            mask[index_with_nan[permutation[i]]] = 1
+
+        count = 0
+        for i in range(size):
+            if mask[i] == 0:
+                count += 1
+
+        result = np.empty(count, dtype=np.uint32)
+        idx = 0
+        for i in range(size):
+            if mask[i] == 0:
+                result[idx] = i
+                idx += 1
+        return result
 
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
