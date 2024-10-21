@@ -249,12 +249,7 @@ class OptiMask:
         for i in range(split):
             mask[index_with_nan[permutation[i]]] = 1
 
-        count = 0
-        for i in range(size):
-            if mask[i] == 0:
-                count += 1
-
-        result = np.empty(count, dtype=np.uint32)
+        result = np.empty(size - split, dtype=np.uint32)
         idx = 0
         for i in range(size):
             if mask[i] == 0:
