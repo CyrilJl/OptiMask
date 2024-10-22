@@ -9,7 +9,7 @@
 
 `OptiMask` is a Python package designed for efficiently handling NaN values in matrices, specifically focusing on computing the largest non-contiguous submatrix without NaN. OptiMask employs a heuristic method, relying solely on Numpy for speed and efficiency. In machine learning applications, OptiMask surpasses traditional methods like pandas `dropna` by maximizing the amount of valid data available for model fitting. It strategically identifies the optimal set of columns (features) and rows (samples) to retain or remove, ensuring that the largest (non-contiguous) submatrix without NaN is utilized for training models.
 
-The problem differs from the computation of the largest rectangles of 1s in a binary matrix (which can be tackled with dynamic programming) and requires a novel approach.
+The problem differs from the computation of the largest rectangles of 1s in a binary matrix (which can be tackled with dynamic programming) and requires a novel approach. The problem also differs from this [algorithmic challenge](https://leetcode.com/problems/largest-submatrix-with-rearrangements/description/) in that it requires rearranging both columns and rows, rather than just columns.
 
 ## Key Features
 
