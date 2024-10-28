@@ -34,7 +34,7 @@ class OptiMask:
         self.verbose = bool(verbose)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, fastmath=True)
     def groupby_max(a, b, n):
         size_a = len(a)
         ret = np.zeros(n, dtype=np.uint32)
@@ -44,7 +44,7 @@ class OptiMask:
         return ret
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False, fastmath=True)
     def cross_groupby_max(a, b, m, n):
         size_a = len(a)
         size_b = len(b)
