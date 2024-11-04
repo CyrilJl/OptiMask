@@ -24,7 +24,6 @@ class OptiMask:
         max_steps (int): Maximum number of steps for the optimization process.
         random_state (int, optional): Seed for the random number generator to ensure reproducibility.
         verbose (bool): If True, prints detailed information about the optimization process.
-
     """
 
     def __init__(self, n_tries=5, max_steps=16, random_state=None, verbose=False):
@@ -33,8 +32,12 @@ class OptiMask:
         self.random_state = random_state
         self.verbose = bool(verbose)
 
+    def _verbose(self, msg):
+        if self.verbose:
+            warning(msg)
+
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, fastmath=True)
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
     def groupby_max(a, b, n):
         size_a = len(a)
         ret = np.zeros(n, dtype=np.uint32)
@@ -44,37 +47,12 @@ class OptiMask:
         return ret
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32, uint32), boundscheck=False, fastmath=True)
-    def cross_groupby_max(a, b, m, n):
-        size_a = len(a)
-        size_b = len(b)
-        s = max(size_a, size_b)
-        ret_a = np.zeros(m, dtype=np.uint32)
-        ret_b = np.zeros(n, dtype=np.uint32)
-        for k in range(s):
-            ak = a[k]
-            bk = b[k]
-            if k < size_a:
-                ret_a[ak] = max(ret_a[ak], bk+1)
-            if k < size_b:
-                ret_b[bk] = max(ret_b[bk], ak+1)
-        return ret_a, ret_b
-
-    def _verbose(self, msg):
-        if self.verbose:
-            warning(msg)
-
-    @staticmethod
     @njit(bool_(uint32[:]), boundscheck=False)
     def is_decreasing(h):
         for i in range(len(h) - 1):
             if h[i] < h[i + 1]:
                 return False
         return True
-
-    @classmethod
-    def is_pareto_ordered(cls, hy, hx):
-        return cls.is_decreasing(hx) and cls.is_decreasing(hy)
 
     @staticmethod
     @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False)
@@ -131,30 +109,33 @@ class OptiMask:
     @njit(boundscheck=False)
     def _preprocess(x):
         m, n = x.shape
-        iy, ix = [], []
+        iy, ix = np.empty(m*n, dtype=np.uint32), np.empty(m*n, dtype=np.uint32)
         cols_index_mapper = -np.ones(n, dtype=np.int32)
-        rows_with_nan = np.zeros(m, dtype=np.bool_)
+        rows_with_nan = np.zeros(m, dtype=np.uint32)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
+        cnt = 0
         for i in range(m):
+            row_has_nan = False
             for j in range(n):
                 if np.isnan(x[i, j]):
-                    rows_with_nan[i] = True
-
-                    iy.append(n_rows_with_nan)
+                    row_has_nan = True
+                    iy[cnt] = n_rows_with_nan
 
                     if cols_index_mapper[j] >= 0:
-                        ix.append(cols_index_mapper[j])
+                        ix[cnt] = cols_index_mapper[j]
                     else:
-                        ix.append(n_cols_with_nan)
+                        ix[cnt] = n_cols_with_nan
                         cols_index_mapper[j] = n_cols_with_nan
                         n_cols_with_nan += 1
+                    cnt += 1
 
-            if rows_with_nan[i]:
+            if row_has_nan:
+                rows_with_nan[n_rows_with_nan] = i
                 n_rows_with_nan += 1
 
-        iy, ix = np.array(iy).astype(np.uint32), np.array(ix).astype(np.uint32)
-        rows_with_nan = np.flatnonzero(rows_with_nan).astype(np.uint32)
+        iy, ix = iy[:cnt], ix[:cnt]
+        rows_with_nan = rows_with_nan[:n_rows_with_nan]
         cols_with_nan = np.flatnonzero(cols_index_mapper >= 0)[cols_index_mapper[cols_index_mapper >= 0].argsort()].astype(np.uint32)
         return iy, ix, rows_with_nan, cols_with_nan
 
@@ -164,26 +145,26 @@ class OptiMask:
         iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
         ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
 
-        hy, hx = self.cross_groupby_max(iy_trial, ix_trial, m_nan, n_nan)
+        hy = self.groupby_max(iy_trial, ix_trial, m_nan)
         step = 0
         is_pareto_ordered = False
         while not is_pareto_ordered and step < self.max_steps:
             axis = step % 2
             step += 1
             if axis == 0:
-                p_step = (-hy).argsort().astype(np.uint32)
+                p_step = (-hy).argsort(kind="mergesort").astype(np.uint32)
                 self.apply_permutation(p_step, iy_trial, inplace=True)
                 p_rows, hy = self.apply_p_step(p_step, p_rows, hy)
                 hx = self.groupby_max(ix_trial, iy_trial, n_nan)
                 is_pareto_ordered = self.is_decreasing(hx)
             else:
-                p_step = (-hx).argsort().astype(np.uint32)
+                p_step = (-hx).argsort(kind="mergesort").astype(np.uint32)
                 self.apply_permutation(p_step, ix_trial, inplace=True)
                 hy = self.groupby_max(iy_trial, ix_trial, m_nan)
                 p_cols, hx = self.apply_p_step(p_step, p_cols, hx)
                 is_pareto_ordered = self.is_decreasing(hy)
 
-        if not self.is_pareto_ordered(hy, hx):
+        if not is_pareto_ordered:
             raise OptiMaskAlgorithmError("An error occurred while calculating optimal permutations. "
                                          "You can try again with a larger `max_steps` value.")
         else:
@@ -200,7 +181,9 @@ class OptiMask:
         for i in range(split):
             mask[index_with_nan[permutation[i]]] = 1
 
-        result = np.empty(size - split, dtype=np.uint32)
+        count = size-split
+
+        result = np.empty(count, dtype=np.uint32)
         idx = 0
         for i in range(size):
             if mask[i] == 0:
@@ -257,6 +240,15 @@ class OptiMask:
             cols_to_keep = self.compute_to_keep(size=n, index_with_nan=cols_with_nan, permutation=p_cols, split=i0)
             return rows_to_keep, cols_to_keep
 
+    @staticmethod
+    @njit(boundscheck=False)
+    def has_nan_in_subset(X, rows, cols):
+        for i in range(rows.size):
+            for j in range(cols.size):
+                if np.isnan(X[rows[i], cols[j]]):
+                    return True
+        return False
+
     def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
         Solves the optimal problem of removing NaNs for a 2D array or DataFrame.
@@ -284,8 +276,8 @@ class OptiMask:
 
         rows, cols = self._solve(np.asarray(X))
 
-        if np.isnan(np.asarray(X)[np.ix_(rows, cols)]).any():
-            raise OptiMaskAlgorithmError("The OptiMask algorithm encountered an error.")
+        if self.has_nan_in_subset(np.asarray(X), rows, cols):
+            raise OptiMaskAlgorithmError("The OptiMask algorithm encountered an error, computed submatrix contains NaNs.")
 
         if isinstance(X, pd.DataFrame):
             if return_data:
@@ -297,6 +289,6 @@ class OptiMask:
 
         if isinstance(X, np.ndarray):
             if return_data:
-                return X[rows][:, cols].copy()
+                return X[np.ix_(rows, cols)].copy()
             else:
                 return rows, cols
