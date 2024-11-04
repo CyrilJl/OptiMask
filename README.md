@@ -97,11 +97,7 @@ x = generate_random(m=100_000, n=1_000, ratio=0.02)
 
 ## Documentation
 
-For detailed documentation, including installation instructions, API usage, and examples, visit [OptiMask Documentation](https://optimask.readthedocs.io/en/latest/index.html).
-
-## Repository Link
-
-Find more about OptiMask on [GitHub](https://github.com/CyrilJl/OptiMask).
+For detailed documentation,API usage, examples and insights on the algorithm, visit [OptiMask Documentation](https://optimask.readthedocs.io/en/latest/index.html).
 
 ## Citation
 
