@@ -99,6 +99,10 @@ x = generate_random(m=100_000, n=1_000, ratio=0.02)
 
 For detailed documentation,API usage, examples and insights on the algorithm, visit [OptiMask Documentation](https://optimask.readthedocs.io/en/latest/index.html).
 
+## Related Project: timefiller
+
+If you're working with time series data, check out [timefiller](https://github.com/CyrilJl/TimeFiller), another Python package I developed for time series imputation. ``timefiller`` is designed to efficiently handle missing data in time series and relies heavily on ``optimask``.
+
 ## Citation
 
 If you use OptiMask in your research or work, please cite it:
