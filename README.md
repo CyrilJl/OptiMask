@@ -81,22 +81,18 @@ import numpy as np
 
 def generate_random(m, n, ratio):
     """Missing at random arrays"""
-    arr = np.zeros((m, n))
-    nan_count = int(ratio * m * n)
-    indices = np.random.choice(m * n, nan_count, replace=False)
-    arr.flat[indices] = np.nan
-    return arr
+    return np.random.choice(a=[0, np.nan], size=(m, n), p=[1-ratio, ratio])
 
 x = generate_random(m=100_000, n=1_000, ratio=0.02)
 %time rows, cols = OptiMask(verbose=True).solve(x)
->>> 	Trial 1 : submatrix of size 37094x49 (1817606 elements) found.
->>> 	Trial 2 : submatrix of size 35667x51 (1819017 elements) found.
->>> 	Trial 3 : submatrix of size 37908x48 (1819584 elements) found.
->>> 	Trial 4 : submatrix of size 37047x49 (1815303 elements) found.
->>> 	Trial 5 : submatrix of size 37895x48 (1818960 elements) found.
->>> Result: the largest submatrix found is of size 37908x48 (1819584 elements) found.
->>> CPU times: total: 172 ms
->>> Wall time: 435 ms
+>>> 	Trial 1 : submatrix of size 35830x51 (1827330 elements) found.
+>>> 	Trial 2 : submatrix of size 37167x49 (1821183 elements) found.
+>>> 	Trial 3 : submatrix of size 37190x49 (1822310 elements) found.
+>>> 	Trial 4 : submatrix of size 36530x50 (1826500 elements) found.
+>>> 	Trial 5 : submatrix of size 37227x49 (1824123 elements) found.
+>>> Result: the largest submatrix found is of size 35830x51 (1827330 elements) found.
+>>> CPU times: total: 938 ms
+>>> Wall time: 223 ms
 ```
 
 ## Documentation
