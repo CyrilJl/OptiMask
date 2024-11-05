@@ -66,13 +66,14 @@ print(f"Coverage Ratio: {coverage_ratio:.2f}, Has NaN Values: {has_nan_values}")
 
 The grey cells represent the NaN locations, the blue ones represent the valid data, and the red ones represent the rows and columns removed by the algorithm:
 
-<img src="https://github.com/CyrilJl/OptiMask/blob/main/docs/source/_static/example0.png?raw=true" width="400">
+<img src="https://github.com/CyrilJl/OptiMask/blob/main/docs/source/_static/example0.png?raw=true" width="400" alt="Strutured NaN">
 
 OptiMask’s algorithm is useful for handling unstructured NaN patterns, as shown in the following example:
 
-<img src="https://github.com/CyrilJl/OptiMask/blob/main/docs/source/_static/example2.png?raw=true" width="400">
+<img src="https://github.com/CyrilJl/OptiMask/blob/main/docs/source/_static/example2.png?raw=true" width="400" alt="Unstructured NaN">
 
 ## Performances
+
 ``OptiMask`` efficiently handles large matrices, delivering results within reasonable computation times:
 
 ```python
@@ -115,6 +116,7 @@ If you use OptiMask in your research or work, please cite it:
   url = {https://github.com/CyrilJl/OptiMask},
 }
 ```
+
 Or:
 
 ```OptiMask (2024). NaN Removal and Largest Submatrix Computation. Developed by Cyril Joly: https://github.com/CyrilJl/OptiMask```
