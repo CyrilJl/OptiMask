@@ -249,13 +249,15 @@ class OptiMask:
                     return True
         return False
 
-    def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
+    def solve(self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False, check_result=False) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
         Solves the optimal problem of removing NaNs for a 2D array or DataFrame.
 
         Args:
             X (Union[np.ndarray, pd.DataFrame]): The input 2D array or DataFrame with NaN values.
             return_data (bool): If True, returns the resulting data; otherwise, returns the indices.
+            check_result (bool): If True, checks if the computed submatrix contains NaNs. Disabled by default
+            as it can slow down the computation and the algorithm has proven to be reliable.
 
         Returns:
             Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]: If return_data is True, returns the resulting 2D array or DataFrame; otherwise, returns the indices of rows and columns to retain.
@@ -276,7 +278,7 @@ class OptiMask:
 
         rows, cols = self._solve(np.asarray(X))
 
-        if self.has_nan_in_subset(np.asarray(X), rows, cols):
+        if check_result and self.has_nan_in_subset(np.asarray(X), rows, cols):
             raise OptiMaskAlgorithmError("The OptiMask algorithm encountered an error, computed submatrix contains NaNs.")
 
         if isinstance(X, pd.DataFrame):
