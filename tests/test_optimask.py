@@ -25,7 +25,7 @@ def test_solve_with_numpy_array(opti_mask_instance):
     n_tries = 50
     for _ in range(n_tries):
         input_data = generate_random(m, n, ratio)
-        rows, cols = opti_mask_instance.solve(input_data)
+        rows, cols = opti_mask_instance.solve(input_data, check_result=True)
         assert np.all(np.isfinite(input_data[rows][:, cols]))
 
 
@@ -35,14 +35,14 @@ def test_solve_with_pandas_dataframe(opti_mask_instance):
     n_tries = 50
     for _ in range(n_tries):
         input_data = pd.DataFrame(generate_random(m, n, ratio))
-        rows, cols = opti_mask_instance.solve(input_data)
+        rows, cols = opti_mask_instance.solve(input_data, check_result=True)
         assert np.all(np.isfinite(input_data.loc[rows, cols]))
 
 
 def test_no_nan(opti_mask_instance):
     m, n = 100, 75
     x = np.ones((m, n))
-    r, c = opti_mask_instance.solve(x)
+    r, c = opti_mask_instance.solve(x, check_result=True)
     assert np.allclose(r, np.arange(m))
     assert np.allclose(c, np.arange(n))
 
@@ -54,7 +54,7 @@ def test_one_col(opti_mask_instance):
     x = np.arange(m, dtype=float)[:, None]
     x[-1, 0] = np.nan
 
-    assert np.allclose(np.arange(m-1)[:, None], opti_mask_instance.solve(x, return_data=True))
+    assert np.allclose(np.arange(m-1)[:, None], opti_mask_instance.solve(x, return_data=True, check_result=True))
 
 
 def test_one_row(opti_mask_instance):
@@ -62,4 +62,4 @@ def test_one_row(opti_mask_instance):
     x = np.arange(m, dtype=float)[None, :]
     x[0, -1] = np.nan
 
-    assert np.allclose(np.arange(m-1)[None, :], opti_mask_instance.solve(x, return_data=True))
+    assert np.allclose(np.arange(m-1)[None, :], opti_mask_instance.solve(x, return_data=True, check_result=True))
