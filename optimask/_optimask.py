@@ -37,7 +37,7 @@ class OptiMask:
             warning(msg)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def groupby_max(a, b, n):
         size_a = len(a)
         ret = np.zeros(n, dtype=np.uint32)
@@ -55,7 +55,7 @@ class OptiMask:
         return True
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation(p, x):
         n = p.size
         m = x.size
@@ -70,7 +70,7 @@ class OptiMask:
         return result
 
     @staticmethod
-    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation_inplace(p, x):
         n = p.size
         rank = np.empty(n, dtype=np.uint32)
@@ -89,7 +89,7 @@ class OptiMask:
             return cls.numba_apply_permutation(p, x)
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def apply_p_step(p_step, a, b):
         ret_a = np.empty(a.size, dtype=np.uint32)
         ret_b = np.empty(b.size, dtype=np.uint32)
@@ -106,7 +106,7 @@ class OptiMask:
         return i0, heights[i0], areas[i0]
 
     @staticmethod
-    @njit(boundscheck=False)
+    @njit(boundscheck=False, cache=True)
     def _preprocess(x):
         m, n = x.shape
         iy, ix = np.empty(m*n, dtype=np.uint32), np.empty(m*n, dtype=np.uint32)
@@ -172,7 +172,7 @@ class OptiMask:
             return area, i0, j0, p_rows, p_cols
 
     @staticmethod
-    @njit(uint32[:](uint32, uint32[:], uint32[:], uint32), boundscheck=False)
+    @njit(uint32[:](uint32, uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def compute_to_keep(size, index_with_nan, permutation, split):
         """
         Faster version of `np.setdiff1d(np.arange(size, dtype=np.uint32), index_with_nan[permutation[:split]])`.
@@ -241,7 +241,7 @@ class OptiMask:
             return rows_to_keep, cols_to_keep
 
     @staticmethod
-    @njit(boundscheck=False)
+    @njit(boundscheck=False, cache=True)
     def has_nan_in_subset(X, rows, cols):
         for i in range(rows.size):
             for j in range(cols.size):
