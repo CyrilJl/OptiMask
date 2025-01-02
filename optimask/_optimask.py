@@ -37,7 +37,7 @@ class OptiMask:
             warning(msg)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def groupby_max(a, b, n):
         """
         numba equivalent to :
