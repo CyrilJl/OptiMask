@@ -9,8 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      NUMBA_CACHE_DIR: /tmp/numba_cache
 
     steps:
     - name: Checkout repository
