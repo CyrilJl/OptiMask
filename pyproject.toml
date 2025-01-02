@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "optimask"
+version = "1.3.7"
+description = "OptiMask: extracting the largest (non-contiguous) submatrix without NaN"
+readme = "README.md"
+authors = [
+    { name = "Cyril Joly" }
+]
+license = { text = "MIT" }
+classifiers = [
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "numba"
+]
+
+[project.urls]
+documentation = "https://optimask.readthedocs.io"
+
+[tool.setuptools.packages.find]

@@ -10,7 +10,7 @@ conda:
 
 python:
   install:
-    - method: setuptools  # runs setup.py
+    - method: pip
       path: .
 
 sphinx:

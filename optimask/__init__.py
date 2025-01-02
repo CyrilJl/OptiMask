@@ -5,6 +5,4 @@
 
 from ._optimask import OptiMask
 
-__all__ = ['OptiMask']
-
-__version__ = '1.3.6'
+__all__ = ["OptiMask"]
