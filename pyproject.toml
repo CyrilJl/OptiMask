@@ -24,3 +24,7 @@ dependencies = [
 documentation = "https://optimask.readthedocs.io"
 
 [tool.setuptools.packages.find]
+
+[tool.ruff]
+line-length = 120
+fix = true
