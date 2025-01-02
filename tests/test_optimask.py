@@ -4,6 +4,12 @@ import pytest
 
 from optimask import OptiMask
 
+import os
+import tempfile
+
+# Créer un répertoire temporaire pour le cache Numba
+os.environ['NUMBA_CACHE_DIR'] = tempfile.mkdtemp()
+
 
 def generate_random(m, n, ratio):
     """Missing at random arrays"""
