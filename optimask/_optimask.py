@@ -54,7 +54,7 @@ class OptiMask:
         return ret
 
     @staticmethod
-    @njit(bool_(uint32[:]), boundscheck=False)
+    @njit(bool_(uint32[:]), boundscheck=False, cache=True)
     def is_decreasing(h):
         for i in range(len(h) - 1):
             if h[i] < h[i + 1]:
@@ -62,7 +62,7 @@ class OptiMask:
         return True
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation(p, x):
         n = p.size
         m = x.size
@@ -77,7 +77,7 @@ class OptiMask:
         return result
 
     @staticmethod
-    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation_inplace(p, x):
         n = p.size
         rank = np.empty(n, dtype=np.uint32)
@@ -107,7 +107,7 @@ class OptiMask:
             return cls.numba_apply_permutation(p, x)
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False)
+    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def apply_p_step(p_step, a, b):
         ret_a = np.empty(a.size, dtype=np.uint32)
         ret_b = np.empty(b.size, dtype=np.uint32)
@@ -124,7 +124,7 @@ class OptiMask:
         return i0, heights[i0], areas[i0]
 
     @staticmethod
-    @njit(boundscheck=False)
+    @njit(boundscheck=False, cache=True)
     def _preprocess(x):
         """
         Preprocesses the input array to identify rows and columns containing NaNs.
@@ -202,7 +202,7 @@ class OptiMask:
             return area, i0, j0, p_rows, p_cols
 
     @staticmethod
-    @njit(uint32[:](uint32, uint32[:], uint32[:], uint32), boundscheck=False)
+    @njit(uint32[:](uint32, uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def compute_to_keep(size, index_with_nan, permutation, split):
         """
         Computes the indices to keep after removing a subset of indices with NaNs.
@@ -280,7 +280,7 @@ class OptiMask:
             return rows_to_keep, cols_to_keep
 
     @staticmethod
-    @njit(boundscheck=False)
+    @njit(boundscheck=False, cache=True)
     def has_nan_in_subset(X, rows, cols):
         """
         Checks if there are any NaN values in the specified subset of the array.
