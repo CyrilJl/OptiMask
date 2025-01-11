@@ -1,3 +1,5 @@
+<div align="center">
+
 [![PyPI Version](https://img.shields.io/pypi/v/optimask.svg)](https://pypi.org/project/optimask/)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/optimask.svg)](https://anaconda.org/conda-forge/optimask)
 [![Conda Downloads](https://anaconda.org/conda-forge/optimask/badges/downloads.svg)](https://anaconda.org/conda-forge/optimask)
@@ -5,7 +7,13 @@
 [![Unit tests](https://github.com/CyrilJl/OptiMask/actions/workflows/pytest.yml/badge.svg)](https://github.com/CyrilJl/OptiMask/actions/workflows/pytest.yml)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bdca34283887428488957959bc1abcc1)](https://app.codacy.com/gh/CyrilJl/OptiMask?utm_source=github.com&utm_medium=referral&utm_content=CyrilJl/OptiMask&utm_campaign=Badge_Grade)
 
-# <img src="https://raw.githubusercontent.com/CyrilJl/OptiMask/main/docs/source/_static/icon.svg" alt="Logo OptiMask" width="200" height="200" align="right"> OptiMask: Efficient NaN Data Removal in Python
+</div>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/CyrilJl/OptiMask/main/docs/source/_static/icon.svg" alt="Logo OptiMask" width="200" height="200">
+</div>
+
+# OptiMask: Efficient NaN Data Removal in Python
 
 `OptiMask` is a Python package designed for efficiently handling NaN values in matrices, specifically focusing on computing the largest non-contiguous submatrix without NaN. OptiMask employs a heuristic method, relying solely on Numpy for speed and efficiency. In machine learning applications, OptiMask surpasses traditional methods like pandas `dropna` by maximizing the amount of valid data available for model fitting. It strategically identifies the optimal set of columns (features) and rows (samples) to retain or remove, ensuring that the largest (non-contiguous) submatrix without NaN is utilized for training models.
 
