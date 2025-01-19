@@ -272,13 +272,15 @@ class OptiMask:
             area_max = -1
             for k in range(self.n_tries):
                 area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
-                self._verbose(f"\tTrial {k+1} : submatrix of size {m-j0}x{n-i0} ({area} elements) found.")
+                self._verbose(f"\tTrial {k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
                 if area > area_max:
                     area_max = area
                     opt = i0, j0, p_rows, p_cols
 
             i0, j0, p_rows, p_cols = opt
-            self._verbose(f"Result: the largest submatrix found is of size {m-j0}x{n-i0} ({area_max} elements) found.")
+            self._verbose(
+                f"Result: the largest submatrix found is of size {m - j0}x{n - i0} ({area_max} elements) found."
+            )
 
             rows_to_keep = self.compute_to_keep(size=m, index_with_nan=rows_with_nan, permutation=p_rows, split=j0)
             cols_to_keep = self.compute_to_keep(size=n, index_with_nan=cols_with_nan, permutation=p_cols, split=i0)
@@ -305,7 +307,10 @@ class OptiMask:
         return False
 
     def solve(
-        self, X: Union[np.ndarray, pd.DataFrame], return_data: bool = False, check_result=False
+        self,
+        X: Union[np.ndarray, pd.DataFrame],
+        return_data: bool = False,
+        check_result=False,
     ) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[pd.Index, pd.Index]]:
         """
         Solves the optimal problem of removing NaNs for a 2D array or DataFrame.
