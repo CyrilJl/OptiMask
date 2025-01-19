@@ -16,7 +16,7 @@ def generate_random(m, n, ratio):
 
 @pytest.fixture
 def opti_mask_instance():
-    return OptiMask()
+    return OptiMask(verbose=1)
 
 
 def test_solve_with_numpy_array(opti_mask_instance):
@@ -63,3 +63,17 @@ def test_one_row(opti_mask_instance):
     x[0, -1] = np.nan
 
     assert np.allclose(np.arange(m - 1)[None, :], opti_mask_instance.solve(x, return_data=True, check_result=True))
+
+
+def test_nan_in_one_col(opti_mask_instance):
+    for m, n in ((75, 2), (75, 500)):
+        x = np.zeros(shape=(m, n))
+        x[:25, 0] = np.nan
+        opti_mask_instance.solve(X=x, check_result=True)
+
+
+def test_nan_in_one_row(opti_mask_instance):
+    for m, n in ((500, 75), (2, 75)):
+        x = np.zeros(shape=(m, n))
+        x[0, :25] = np.nan
+        opti_mask_instance.solve(X=x, check_result=True)
