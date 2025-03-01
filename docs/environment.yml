@@ -2,7 +2,7 @@ name: base
 channels:
   - conda-forge
 dependencies:
-  - docutils
+  - docutils=0.20
   - nbsphinx
   - nbsphinx-link
   - pydata-sphinx-theme
