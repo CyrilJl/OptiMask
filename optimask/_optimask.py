@@ -331,12 +331,22 @@ class OptiMask:
             OptiMaskAlgorithmError: If the OptiMask algorithm encounters an error during optimization.
             ValueError: If the input DataFrame's index contains non-unique entries.
         """
-        check_params(X, types=(np.ndarray, pd.DataFrame))
+        try:
+            import polars as pl
+
+            has_polars = True
+        except ImportError:
+            has_polars = False
+
+        if has_polars:
+            check_params(X, types=(np.ndarray, pd.DataFrame, pl.DataFrame))
+        else:
+            check_params(X, types=(np.ndarray, pd.DataFrame))
 
         if isinstance(X, np.ndarray) and X.ndim != 2:
             raise InvalidDimensionError("For a numpy array, 'X' must have ndim == 2.")
 
-        if X.size == 0:
+        if X.shape[0] == 0 or X.shape[1] == 0:
             raise EmptyInputError("`X` is empty.")
 
         rows, cols = self._solve(np.asarray(X))
@@ -354,8 +364,14 @@ class OptiMask:
                     raise ValueError("The index contains non-unique entries!")
                 return X.index[rows].copy(), X.columns[cols].copy()
 
-        if isinstance(X, np.ndarray):
+        elif isinstance(X, np.ndarray):
             if return_data:
                 return X[np.ix_(rows, cols)].copy()
+            else:
+                return rows, cols
+
+        elif has_polars and isinstance(X, pl.DataFrame):
+            if return_data:
+                return X[rows][:, cols]
             else:
                 return rows, cols

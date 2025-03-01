@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import polars as pl
 import pytest
 
 from optimask import OptiMask
@@ -27,6 +28,9 @@ def test_solve_with_numpy_array(opti_mask_instance):
         input_data = generate_random(m, n, ratio)
         rows, cols = opti_mask_instance.solve(input_data, check_result=True)
         assert np.all(np.isfinite(input_data[rows][:, cols]))
+        sub_data = opti_mask_instance.solve(input_data, check_result=True, return_data=True)
+        assert np.all(np.isfinite(sub_data))
+        assert isinstance(sub_data, np.ndarray)
 
 
 def test_solve_with_pandas_dataframe(opti_mask_instance):
@@ -37,6 +41,22 @@ def test_solve_with_pandas_dataframe(opti_mask_instance):
         input_data = pd.DataFrame(generate_random(m, n, ratio))
         rows, cols = opti_mask_instance.solve(input_data, check_result=True)
         assert np.all(np.isfinite(input_data.loc[rows, cols]))
+        sub_data = opti_mask_instance.solve(input_data, check_result=True, return_data=True)
+        assert np.all(np.isfinite(sub_data))
+        assert isinstance(sub_data, pd.DataFrame)
+
+
+def test_solve_with_polars_dataframe(opti_mask_instance):
+    m, n = 350, 50
+    ratio = 0.2
+    n_tries = 50
+    for _ in range(n_tries):
+        input_data = pl.DataFrame(generate_random(m, n, ratio))
+        rows, cols = opti_mask_instance.solve(input_data, check_result=True)
+        assert np.all(np.isfinite(input_data[rows][:, cols]))
+        sub_data = opti_mask_instance.solve(input_data, check_result=True, return_data=True)
+        assert np.all(np.isfinite(sub_data))
+        assert isinstance(sub_data, pl.DataFrame)
 
 
 def test_no_nan(opti_mask_instance):
