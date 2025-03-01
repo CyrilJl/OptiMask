@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - docutils=0.20
-  - nbsphinx
+  - nbsphinx=0.9.5
   - nbsphinx-link
   - pydata-sphinx-theme
   - sphinx-copybutton
