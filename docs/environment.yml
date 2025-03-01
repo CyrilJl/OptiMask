@@ -9,6 +9,3 @@ dependencies:
   - sphinx-copybutton
   - sphinx-favicon
   - pandoc
-  - numpy
-  - pandas
-  - numba
