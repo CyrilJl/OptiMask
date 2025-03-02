@@ -94,14 +94,14 @@ def generate_random(m, n, ratio):
 
 x = generate_random(m=100_000, n=1_000, ratio=0.02)
 %time rows, cols = OptiMask(verbose=True).solve(x)
->>> 	Trial 1 : submatrix of size 35830x51 (1827330 elements) found.
->>> 	Trial 2 : submatrix of size 37167x49 (1821183 elements) found.
->>> 	Trial 3 : submatrix of size 37190x49 (1822310 elements) found.
->>> 	Trial 4 : submatrix of size 36530x50 (1826500 elements) found.
->>> 	Trial 5 : submatrix of size 37227x49 (1824123 elements) found.
->>> Result: the largest submatrix found is of size 35830x51 (1827330 elements) found.
->>> CPU times: total: 938 ms
->>> Wall time: 223 ms
+# CPU times: total: 609 ms
+# Wall time: 191 ms
+# 	Trial 1 : submatrix of size 35008x52 (1820416 elements) found.
+# 	Trial 2 : submatrix of size 35579x51 (1814529 elements) found.
+# 	Trial 3 : submatrix of size 37900x48 (1819200 elements) found.
+# 	Trial 4 : submatrix of size 38040x48 (1825920 elements) found.
+# 	Trial 5 : submatrix of size 37753x48 (1812144 elements) found.
+# Result: the largest submatrix found is of size 38040x48 (1825920 elements) found.
 ```
 
 ## Documentation
