@@ -1,3 +1,5 @@
+from time import perf_counter
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -17,7 +19,7 @@ def generate_random(m, n, ratio):
 
 @pytest.fixture
 def opti_mask_instance() -> OptiMask:
-    return OptiMask(verbose=1)
+    return OptiMask()
 
 
 def get_rows_cols(data, rows, cols):
@@ -121,3 +123,12 @@ def test_seed():
     assert np.allclose(cols1, cols2)
     assert (len(rows1) != len(rows3)) or (not np.allclose(rows1, rows3))
     assert (len(cols1) != len(cols3)) or (not np.allclose(cols1, cols3))
+
+
+def test_speed(opti_mask_instance):
+    x = generate_random(m=100_000, n=1_000, ratio=0.02)
+    print()
+    for _ in range(5):
+        start = perf_counter()
+        opti_mask_instance.solve(X=x)
+        print(f"{1e3 * (perf_counter() - start):.2f}ms")
