@@ -30,4 +30,4 @@ jobs:
 
     - name: Run Pytest
       run: |
-        pytest tests/test_optimask.py
+        pytest -vv -s tests/test_optimask.py
