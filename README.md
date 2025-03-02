@@ -15,7 +15,7 @@
 
 # OptiMask: Efficient NaN Data Removal in Python
 
-`OptiMask` is a Python package designed for efficiently handling NaN values in matrices, specifically focusing on computing the largest non-contiguous submatrix without NaN. OptiMask employs a heuristic method, relying solely on Numpy for speed and efficiency. In machine learning applications, OptiMask surpasses traditional methods like pandas `dropna` by maximizing the amount of valid data available for model fitting. It strategically identifies the optimal set of columns (features) and rows (samples) to retain or remove, ensuring that the largest (non-contiguous) submatrix without NaN is utilized for training models.
+`OptiMask` is a Python package designed for efficiently handling NaN values in matrices, specifically focusing on computing the largest non-contiguous submatrix without NaN. OptiMask employs a heuristic method, relying on `numpy` and `numba` for speed and efficiency. In machine learning applications, OptiMask surpasses traditional methods like pandas `dropna` by maximizing the amount of valid data available for model fitting. It strategically identifies the optimal set of columns (features) and rows (samples) to retain or remove, ensuring that the largest (non-contiguous) submatrix without NaN is utilized for training models.
 
 The problem differs from the computation of the largest rectangles of 1s in a binary matrix (which can be tackled with dynamic programming) and requires a novel approach. The problem also differs from this [algorithmic challenge](https://leetcode.com/problems/largest-submatrix-with-rearrangements/description/) in that it requires rearranging both columns and rows, rather than just columns.
 
@@ -23,7 +23,7 @@ The problem differs from the computation of the largest rectangles of 1s in a bi
 
 - **Largest Submatrix without NaN:** OptiMask calculates the largest submatrix without NaN, enhancing data analysis accuracy.
 - **Efficient Computation:** With optimized computation, OptiMask provides rapid results without undue delays.
-- **Numpy and Pandas Compatibility:** OptiMask seamlessly adapts to both Numpy and Pandas data structures.
+- **Numpy, Pandas and Polars Compatibility:** OptiMask adapts to `numpy`, `pandas` and `polars` data structures.
 
 ## Utilization
 
