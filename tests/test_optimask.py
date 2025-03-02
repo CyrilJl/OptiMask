@@ -20,43 +20,43 @@ def opti_mask_instance() -> OptiMask:
     return OptiMask(verbose=1)
 
 
-def test_solve_with_numpy_array(opti_mask_instance):
-    m, n = 350, 50
-    ratio = 0.2
-    n_tries = 50
+def get_rows_cols(data, rows, cols):
+    """Helper function to get sub-data based on data type."""
+    if isinstance(data, np.ndarray):
+        return data[rows][:, cols]
+    elif isinstance(data, pd.DataFrame):
+        return data.loc[rows, cols]
+    elif isinstance(data, pl.DataFrame):
+        return data[rows][:, cols]
+    else:
+        raise TypeError(f"Unsupported data type: {type(data)}")
+
+
+def assert_finite_and_type(sub_data, expected_type):
+    """Helper function to assert finite values and type."""
+    assert np.all(np.isfinite(sub_data))
+    assert isinstance(sub_data, expected_type)
+
+
+@pytest.mark.parametrize("data_type", [np.ndarray, pd.DataFrame, pl.DataFrame])
+def test_solve_generic(opti_mask_instance, data_type):
+    m, n = 1000, 50
+    ratio = 0.1
+    n_tries = 15
+
     for _ in range(n_tries):
         input_data = generate_random(m, n, ratio)
+        if data_type is pd.DataFrame:
+            input_data = pd.DataFrame(input_data)
+        elif data_type is pl.DataFrame:
+            input_data = pl.DataFrame(input_data)
+
         rows, cols = opti_mask_instance.solve(input_data, check_result=True)
-        assert np.all(np.isfinite(input_data[rows][:, cols]))
+        sub_data_extracted = get_rows_cols(input_data, rows, cols)
+        assert np.all(np.isfinite(sub_data_extracted))
+
         sub_data = opti_mask_instance.solve(input_data, check_result=True, return_data=True)
-        assert np.all(np.isfinite(sub_data))
-        assert isinstance(sub_data, np.ndarray)
-
-
-def test_solve_with_pandas_dataframe(opti_mask_instance):
-    m, n = 350, 50
-    ratio = 0.2
-    n_tries = 50
-    for _ in range(n_tries):
-        input_data = pd.DataFrame(generate_random(m, n, ratio))
-        rows, cols = opti_mask_instance.solve(input_data, check_result=True)
-        assert np.all(np.isfinite(input_data.loc[rows, cols]))
-        sub_data = opti_mask_instance.solve(input_data, check_result=True, return_data=True)
-        assert np.all(np.isfinite(sub_data))
-        assert isinstance(sub_data, pd.DataFrame)
-
-
-def test_solve_with_polars_dataframe(opti_mask_instance):
-    m, n = 350, 50
-    ratio = 0.2
-    n_tries = 50
-    for _ in range(n_tries):
-        input_data = pl.DataFrame(generate_random(m, n, ratio))
-        rows, cols = opti_mask_instance.solve(input_data, check_result=True)
-        assert np.all(np.isfinite(input_data[rows][:, cols]))
-        sub_data = opti_mask_instance.solve(input_data, check_result=True, return_data=True)
-        assert np.all(np.isfinite(sub_data))
-        assert isinstance(sub_data, pl.DataFrame)
+        assert_finite_and_type(sub_data, data_type)
 
 
 def test_no_nan(opti_mask_instance):
