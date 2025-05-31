@@ -1,0 +1,230 @@
+% a0poster Landscape Poster
+% LaTeX Template
+% Version 1.0 (22/06/13)
+%
+% The a0poster class was created by:
+% Gerlinde Kettl and Matthias Weiser (tex@kettl.de)
+% 
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[a0,landscape]{a0poster}
+
+\usepackage{multicol} % This is so we can have multiple columns of text side-by-side
+\columnsep=100pt % This is the amount of white space between the columns in the poster
+\columnseprule=3pt % This is the thickness of the black line between the columns in the poster
+
+\usepackage[svgnames]{xcolor} % Specify colors by their 'svgnames', for a full list of all colors available see here: http://www.latextemplates.com/svgnames-colors
+
+\usepackage{times} % Use the times font
+%\usepackage{palatino} % Uncomment to use the Palatino font
+
+\usepackage{graphicx} % Required for including images
+\graphicspath{{figures/}} % Location of the graphics files
+\usepackage{booktabs} % Top and bottom rules for table
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+\usepackage{amsfonts, amsmath, amsthm, amssymb} % For math fonts, symbols and environments
+\usepackage{wrapfig} % Allows wrapping text around tables and figures
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	POSTER HEADER 
+%----------------------------------------------------------------------------------------
+
+% The header is divided into three boxes:
+% The first is 55% wide and houses the title, subtitle, names and university/organization
+% The second is 25% wide and houses contact information
+% The third is 19% wide and houses a logo for your university/organization or a photo of you
+% The widths of these boxes can be easily edited to accommodate your content as you see fit
+
+\begin{minipage}[b]{0.9\linewidth}
+	\veryHuge \color{NavyBlue} \textbf{OptiMask: Efficiently Finding the Largest NaN-Free Submatrix}\\ % Title
+	\Huge\textit{A Heuristic Approach for Optimal NaN Removal in Tabular Data}\\[1cm] % Subtitle
+	\huge \textbf{Cyril Joly}\\ % Author(s)
+	\huge \texttt{https://optimask.readthedocs.io}\\
+	% \huge [Your Affiliation / Open Source Project]\\ % University/organization
+\end{minipage}
+%
+% \begin{minipage}[b]{0.25\linewidth}
+% \color{DarkSlateGray}\Large \textbf{Contact Information:}\\
+% Website: \texttt{https://optimask.readthedocs.io} % Website
+% \end{minipage}
+%
+% \begin{minipage}[b]{0.19\linewidth}
+% \includegraphics[width=20cm]{logo.png} % Logo or a photo of you, adjust its dimensions here
+% \end{minipage}
+
+\vspace{1cm} % A bit of extra whitespace between the header and poster content
+
+%----------------------------------------------------------------------------------------
+
+\begin{multicols}{4} % This is how many columns your poster will be broken into, a poster with many figures may benefit from less columns whereas a text-heavy poster benefits from more
+
+	\color{Navy} % Navy color for the abstract
+
+	\section*{Introduction}
+
+	OptiMask is designed to address the common challenge of missing values, or NaNs, in data analysis. Traditional methods often involve dropping every row or column that contains any NaN values, which can result in significant data loss. OptiMask offers a more efficient solution by identifying the largest rectangular submatrix within any 2D tabular dataset that is free of NaNs. This heuristic algorithm is versatile and its implementation supports various data structures including NumPy arrays, pandas DataFrames, and Polars DataFrames, providing a practical approach to maximize data retention while maintaining data integrity. Key features of OptiMask include configurable random restarts to enhance solution quality and a verbose mode for monitoring intermediate optimization steps.
+
+	The problem OptiMask addresses is particularly relevant as missing data is common in real-world datasets. The goal is to solve an optimization problem to maximize the number of cells in the resulting NaN-free submatrix. By focusing on this optimization problem, OptiMask ensures that valuable information is preserved, even when NaNs are sparsely distributed.
+
+	\section*{The Problem at Hand}
+
+	Consider a matrix with NaNs. For each NaN, a decision must be made: remove its row or its column. The optimal choice aims to maximize the area of the remaining NaN-free submatrix.
+
+	\begin{center}\vspace{0.5cm}
+		\includegraphics[width=0.7\linewidth]{figures/problem_illustration.png} % Replace with your image
+		\captionof{figure}{\color{Green} \textbf{Simple Case:} A single NaN in a 12x5 matrix. Removing the row results in an 11x5 submatrix (55 elements). Removing the column results in a 12x4 submatrix (48 elements). Here, removing the row is optimal. The complexity grows rapidly with more NaNs.}
+		\label{fig:problem_illustration}
+	\end{center}\vspace{0.5cm}
+
+	As the number and distribution of NaNs become more complex, finding the optimal set of rows and columns to remove becomes a challenging combinatorial optimization problem.
+
+	%----------------------------------------------------------------------------------------
+	%	OBJECTIVES
+	%----------------------------------------------------------------------------------------
+
+	\color{DarkSlateGray} % DarkSlateGray color for the rest of the content
+
+	\section*{Formal Optimization Approaches}
+
+	The problem can be formulated using established optimization techniques:
+
+	\subsection*{Linear Programming (LP)}
+	Define binary variables: $r_i=1$ if row $i$ is removed, $c_j=1$ if column $j$ is removed, and $e_{i,j}=1$ if cell $(i,j)$ is part of a removed row or column.
+	The objective is to \textbf{minimize} $\sum e_{i,j}$ subject to:
+	\begin{itemize}
+		\item $e_{i,j} = 1$ if $A_{i,j}$ is NaN.
+		\item $r_i + c_j \ge e_{i,j}$ (if a NaN cell is marked for removal, its row or column or both must be removed).
+		\item $e_{i,j} \ge r_i$ and $e_{i,j} \ge c_j$ (if a row/column is removed, all its cells are considered removed).
+	\end{itemize}
+	LP solvers can find the optimal solution but can be computationally expensive for large matrices due to the $m \times n$ binary variables $e_{i,j}$.
+
+	\subsection*{Quadratic Programming (QP)}
+	Alternatively, with binary variables $r_i$ and $c_j$ (1 if removed), the objective is to \textbf{maximize} $(m-\sum r_i) \times (n-\sum c_j)$ subject to:
+	\begin{itemize}
+		\item $r_i + c_j \ge 1$ for each $(i,j)$ where $A_{i,j}$ is NaN.
+	\end{itemize}
+	This reduces the number of variables but introduces a quadratic objective function, which can also be challenging.
+
+	\section*{OptiMask: The Heuristic Algorithm}
+	OptiMask employs a heuristic algorithm to efficiently find a high-quality solution. A formal proof of convergence to the global optimum is currently unavailable, but the method is effective in practice.
+
+	\textbf{Core Idea:}
+	\begin{enumerate}
+		\item \textbf{Isolate NaN-involved regions:} Focus on rows and columns that contain at least one NaN. Rows/columns with no NaNs are always kept.
+		\item \textbf{Iterative Permutations:} The algorithm iteratively permutes the order of these NaN-involved rows and columns. The goal is to arrange them such that the "highest" NaN in each column (hy) and the "rightmost" NaN in each row (hx) form a decreasing (Pareto-like) frontier. This is achieved by repeatedly sorting rows based on `hy` and columns based on `hx`.
+		\item \textbf{Largest Contiguous Rectangle:} Once this ordered frontier is established, the problem reduces to finding the largest rectangle of cells that can be formed in the "upper-right" (or equivalent, depending on sort order) of this permuted NaN-region, which is free of NaNs.
+		\item \textbf{Random Restarts (\texttt{n\_tries}):} The permutation process is sensitive to the initial random state. OptiMask performs multiple trials (controlled by \texttt{n\_tries}), each starting with a different random permutation of rows and columns. The best solution (largest NaN-free area) across all tries is selected.
+	\end{enumerate}
+
+	\begin{center}\vspace{0.5cm}
+		\includegraphics[width=0.8\linewidth]{figures/optimask_algorithm_overview.png} % Replace with your image
+		\captionof{figure}{\color{Green} \textbf{OptiMask Algorithm Overview:} 1. Initial NaN matrix. 2. Iterative permutations create an ordered NaN frontier. 3. The largest NaN-free rectangle (blue) is identified relative to this frontier.}
+		\label{fig:optimask_algorithm}
+	\end{center}\vspace{0.5cm}
+
+	The algorithm keeps track of the permutations to map the solution back to the original matrix's row and column indices.
+
+	%----------------------------------------------------------------------------------------
+	%	RESULTS 
+	%----------------------------------------------------------------------------------------
+
+	\section*{Results}
+	\subsection*{OptiMask API and Usage}
+	OptiMask is designed for ease of use and integrates with common Python data science libraries.
+
+	\textbf{Key Parameters:}
+	\begin{itemize}
+		\item \texttt{n\_tries} (int, default: 5): Number of random restarts. Higher values may yield better solutions at the cost of computation time.
+		\item \texttt{random\_state} (int, optional): Seed for reproducibility.
+		\item \texttt{verbose} (bool, default: False): Prints intermediate results of each trial.
+		\item \texttt{return\_data} (bool, default: False): If True, returns the NaN-free submatrix/subframe. Otherwise, returns the indices/labels of rows and columns to keep.
+	\end{itemize}
+
+	\textbf{Example (NumPy):}
+	\begin{verbatim}
+    import numpy as np
+    from optimask import OptiMask
+	\end{verbatim}
+
+	\begin{center}\vspace{0.5cm}
+		\includegraphics[width=0.9\linewidth]{figures/optimask_api_example.png} % Replace with your image
+		\captionof{figure}{\color{Green} \textbf{OptiMask Visualization:} (Left) An input matrix with randomly distributed NaNs. (Right) The largest NaN-free submatrix (blue) identified by OptiMask, with removed rows and columns shown in red.}
+		\label{fig:api_example}
+	\end{center}\vspace{0.5cm}
+
+	\subsection*{Impact of \texttt{n\_tries}}
+	The \texttt{n\_tries} parameter significantly influences the quality of the solution. More trials increase the likelihood of finding a larger NaN-free submatrix, potentially reaching the optimal solution.
+
+	\begin{center}\vspace{0.5cm}
+		\includegraphics[width=0.9\linewidth]{figures/n_tries_convergence.png} % Replace with your image
+		\captionof{figure}{\color{Green} \textbf{Solution Quality vs. \texttt{n\_tries}:} The plot shows how the size of the found NaN-free submatrix (cumulative maximum over trials) typically increases with the number of random restarts. The red dashed line indicates the size of the optimal solution (if known, e.g., from LP for smaller test cases).}
+		\label{fig:n_tries}
+	\end{center}\vspace{0.5cm}
+
+	%----------------------------------------------------------------------------------------
+	%	CONCLUSIONS
+	%----------------------------------------------------------------------------------------
+
+	\color{SaddleBrown} % SaddleBrown color for the conclusions to make them stand out
+
+	\subsection*{Performance and Scalability}
+	OptiMask is implemented with Numba-compiled functions for critical parts of the algorithm, enabling efficient processing of large matrices. The runtime complexity is primarily influenced by the number of NaN cells, the dimensions of the matrix, and the \texttt{n\_tries} parameter.
+
+	For a 50x50 matrix with 2\% NaNs, OptiMask (default \texttt{n\_tries=5}) typically finds a solution in milliseconds. It has been tested on matrices as large as 100,000 x 1,000, demonstrating its capability to handle substantial datasets.
+
+	\subsection*{Handling Structured NaN Patterns}
+	OptiMask is not limited to randomly distributed NaNs. It can effectively identify large NaN-free submatrices even when the NaNs form structured patterns (e.g., checkerboard, bands).
+
+	\begin{center}\vspace{0.5cm}
+		\includegraphics[width=0.9\linewidth]{figures/structured_nans.png} % Replace with your image
+		\captionof{figure}{\color{Green} \textbf{Structured NaNs:} (Left) An input matrix with a checkerboard NaN pattern. (Right) OptiMask successfully identifies a large NaN-free submatrix.}
+		\label{fig:structured_nans}
+	\end{center}\vspace{0.5cm}
+
+	\section*{Conclusions}
+
+	\begin{itemize}
+		\item OptiMask provides an efficient and practical heuristic solution to the complex problem of finding the largest NaN-free submatrix in 2D data.
+		\item It effectively balances solution quality with computational cost, making it suitable for various data preprocessing tasks.
+		\item Support for NumPy arrays and pandas DataFrames, along with parameters like \texttt{n\_tries}, offers flexibility for users.
+		\item The algorithm demonstrates good performance on both random and structured NaN patterns, and scales to large datasets.
+	\end{itemize}
+
+	\color{DarkSlateGray} % Set the color back to DarkSlateGray for the rest of the content
+
+	%----------------------------------------------------------------------------------------
+	%	REFERENCES
+	%----------------------------------------------------------------------------------------
+
+	% \nocite{*} % Print all references regardless of whether they were cited in the poster or not
+	% \bibliographystyle{plain} % Plain referencing style
+	% \bibliography{sample} % Use the example bibliography file sample.bib
+	% Commented out as no specific references are given. Add your own .bib file if needed.
+
+	%----------------------------------------------------------------------------------------
+	%	ACKNOWLEDGEMENTS
+	%----------------------------------------------------------------------------------------
+
+\section*{Acknowledgements}
+
+We acknowledge the developers of numpy, pandas, and numba, whose libraries form the foundation of
+OptiMask. We also thank Paul Catala from Université de Lorraine and Alexis Lebeau from RTE France
+for their assistance and review.
+
+
+	%----------------------------------------------------------------------------------------
+
+\end{multicols}
+\end{document}
