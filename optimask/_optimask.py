@@ -277,7 +277,7 @@ class OptiMask:
             rng = np.random.default_rng(seed=self.random_state)
             area_max = -1
             for k in range(self.n_tries):
-                area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
+                area, i0, j0, p_rows, p_cols = self._trial(k, rng, m_nan, n_nan, iy, ix, m, n)
                 self._verbose(f"\tTrial {k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
                 if area > area_max:
                     area_max = area
