@@ -181,8 +181,8 @@ class OptiMask:
         else:
             p_rows = np.arange(m_nan).astype(np.uint32)
             p_cols = np.arange(n_nan).astype(np.uint32)
-            iy_trial = ix.copy()
-            ix_trial = iy.copy()
+            iy_trial = ix.astype(np.uint32)
+            ix_trial = iy.astype(np.uint32)
 
         hy = self.groupby_max(iy_trial, ix_trial, m_nan)
         step = 0
