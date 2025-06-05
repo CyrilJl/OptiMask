@@ -172,11 +172,17 @@ class OptiMask:
         ].astype(np.uint32)
         return iy, ix, rows_with_nan, cols_with_nan
 
-    def _trial(self, rng, m_nan, n_nan, iy, ix, m, n):
-        p_rows = rng.permutation(m_nan).astype(np.uint32)
-        p_cols = rng.permutation(n_nan).astype(np.uint32)
-        iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
-        ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
+    def _trial(self, k, rng, m_nan, n_nan, iy, ix, m, n):
+        if k:
+            p_rows = rng.permutation(m_nan).astype(np.uint32)
+            p_cols = rng.permutation(n_nan).astype(np.uint32)
+            iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
+            ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
+        else:
+            p_rows = np.arange(m_nan).astype(np.uint32)
+            p_cols = np.arange(n_nan).astype(np.uint32)
+            iy_trial = ix.copy()
+            ix_trial = iy.copy()
 
         hy = self.groupby_max(iy_trial, ix_trial, m_nan)
         step = 0
