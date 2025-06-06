@@ -1,4 +1,6 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, List, Optional, Any
+import os
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pandas as pd
@@ -25,13 +27,16 @@ class OptiMask:
         max_steps (int): Maximum number of steps for the optimization process.
         random_state (int, optional): Seed for the random number generator to ensure reproducibility.
         verbose (bool): If True, prints detailed information about the optimization process.
+        n_jobs (int): Number of parallel jobs to run for trials. Default is 1.
+                      If -1, then the number of jobs is set to the number of CPUs.
     """
 
-    def __init__(self, n_tries=5, max_steps=16, random_state=None, verbose=False):
+    def __init__(self, n_tries=5, max_steps=16, random_state=None, verbose=False, n_jobs=1):
         self.n_tries = n_tries
         self.max_steps = max_steps
         self.random_state = random_state
         self.verbose = bool(verbose)
+        self.n_jobs = n_jobs
 
     def _verbose(self, msg):
         if self.verbose:
@@ -172,8 +177,10 @@ class OptiMask:
         ].astype(np.uint32)
         return iy, ix, rows_with_nan, cols_with_nan
 
-    def _trial(self, k, rng, m_nan, n_nan, iy, ix, m, n):
+    def _trial(self, k_and_seed, m_nan, n_nan, iy, ix, m, n):
+        k, trial_seed = k_and_seed
         if k:
+            rng = np.random.default_rng(trial_seed)
             p_rows = rng.permutation(m_nan).astype(np.uint32)
             p_cols = rng.permutation(n_nan).astype(np.uint32)
             iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
@@ -274,16 +281,89 @@ class OptiMask:
                 return np.setdiff1d(np.arange(m), rows_with_nan), np.arange(n)
 
         else:
-            rng = np.random.default_rng(seed=self.random_state)
+            # Determine the number of workers for parallel execution
+            if self.n_jobs == -1:
+                actual_n_workers = os.cpu_count()
+                if actual_n_workers is None:  # os.cpu_count() can return None
+                    actual_n_workers = 1
+            elif self.n_jobs <= 0:  # Treat 0 or negative (not -1) as 1 worker
+                actual_n_workers = 1
+            else:
+                actual_n_workers = self.n_jobs
+
+            if self.n_tries > 0:
+                n_workers_for_pool = min(actual_n_workers, self.n_tries)
+            else: # No trials, so no workers needed for pool.
+                n_workers_for_pool = 0
+
+            # Prepare arguments for each trial, including seeds
+            trial_k_and_seeds: List[Tuple[int, Any]] = []
+            if self.random_state is not None:
+                ss = np.random.SeedSequence(self.random_state)
+                child_seeds = ss.spawn(self.n_tries)
+                for k_idx in range(self.n_tries):
+                    if k_idx == 0: # Trial k=0 doesn't use RNG for permutation
+                        trial_k_and_seeds.append((k_idx, None))
+                    else:
+                        trial_k_and_seeds.append((k_idx, child_seeds[k_idx]))
+            else:
+                for k_idx in range(self.n_tries):
+                    trial_k_and_seeds.append((k_idx, None)) # default_rng(None) is random
+
+            results = []
+            if n_workers_for_pool > 1 and self.n_tries > 0:
+                with ThreadPoolExecutor(max_workers=n_workers_for_pool) as executor:
+                    futures = [
+                        executor.submit(self._trial, k_s, m_nan, n_nan, iy, ix, m, n)
+                        for k_s in trial_k_and_seeds
+                    ]
+                    for future in futures:
+                        results.append(future.result())
+            else: # Sequential execution
+                for k_s in trial_k_and_seeds:
+                    result = self._trial(k_s, m_nan, n_nan, iy, ix, m, n)
+                    results.append(result)
+
             area_max = -1
-            for k in range(self.n_tries):
-                area, i0, j0, p_rows, p_cols = self._trial(k, rng, m_nan, n_nan, iy, ix, m, n)
-                self._verbose(f"\tTrial {k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
+            opt: Optional[Tuple[np.uint32, np.uint32, np.ndarray, np.ndarray]] = None
+
+            if not results and self.n_tries > 0:
+                # This case implies all trials failed, which is unexpected if _trial always returns.
+                # Or if n_tries was > 0 but trial_k_and_seeds was empty (should not happen).
+                raise OptiMaskAlgorithmError("Optimization failed: No results returned from trials.")
+
+            for k_idx, result_tuple in enumerate(results):
+                area, i0, j0, p_rows, p_cols = result_tuple
+                original_k = trial_k_and_seeds[k_idx][0] # Get the original k value for logging
+                self._verbose(f"\tTrial {original_k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
                 if area > area_max:
                     area_max = area
-                    opt = i0, j0, p_rows, p_cols
+                    opt = (i0, j0, p_rows, p_cols)
 
-            i0, j0, p_rows, p_cols = opt
+            if opt is None:
+                if self.n_tries == 0:
+                    # No trials were run, return all rows/cols as no optimization was performed.
+                    # This behavior is debatable: either this or raise error.
+                    # For now, returning all seems like a safe default for "0 tries".
+                    # However, the original code would error here due to `opt` not being assigned.
+                    # To maintain consistency with potential original error for n_tries=0:
+                    # Let's ensure `opt` related error can still occur if it's truly uninitialized AND expected.
+                    # The problem with original code is `opt` might not be defined. Here it *is* defined as None.
+                    # If n_tries = 0, we should probably return m, n earlier or handle it.
+                    # Given the problem focuses on parallelizing, stick to that.
+                    # If `opt` is still None and `n_tries` > 0, it's an issue.
+                    # The `if not results and self.n_tries > 0` check above should catch this.
+                    # If `n_tries` is 0, `results` is empty, `opt` is `None`.
+                    # The code proceeds to `i0, j0, p_rows, p_cols = opt` which will fail.
+                    # This matches the original code's behavior if n_tries=0.
+                    pass # Let it fail on `i0,j0... = opt` if n_tries = 0
+                else: # n_tries > 0 but opt is still None
+                    raise OptiMaskAlgorithmError(
+                        "Optimization failed: No optimal solution found after all trials."
+                    )
+
+
+            i0, j0, p_rows, p_cols = opt # This line will raise TypeError if opt is None
             self._verbose(
                 f"Result: the largest submatrix found is of size {m - j0}x{n - i0} ({area_max} elements) found."
             )

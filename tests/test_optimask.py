@@ -136,3 +136,64 @@ def test_large_arrays(opti_mask_instance):
 
     x = generate_random(m=1_000, n=100_000, ratio=0.02)
     opti_mask_instance.solve(x)
+
+
+def test_optimask_parallel_reproducibility_numpy():
+    """Tests reproducibility of OptiMask results for NumPy arrays with different n_jobs settings."""
+    data = np.array([
+        [1, 2, np.nan, 4],
+        [np.nan, 6, 7, 8],
+        [9, 10, 11, np.nan],
+        [13, np.nan, 15, 16]
+    ])
+    random_seed = 42
+    n_tries_val = 20
+
+    om1 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=1)
+    r1, c1 = om1.solve(data.copy())
+
+    om2 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=2)
+    r2, c2 = om2.solve(data.copy())
+
+    om_neg1 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=-1)
+    r_neg1, c_neg1 = om_neg1.solve(data.copy())
+
+    om0 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=0)
+    r0, c0 = om0.solve(data.copy())
+
+    assert np.array_equal(r1, r2), "Row results differ between n_jobs=1 and n_jobs=2"
+    assert np.array_equal(c1, c2), "Column results differ between n_jobs=1 and n_jobs=2"
+
+    assert np.array_equal(r1, r_neg1), "Row results differ between n_jobs=1 and n_jobs=-1"
+    assert np.array_equal(c1, c_neg1), "Column results differ between n_jobs=1 and n_jobs=-1"
+
+    assert np.array_equal(r1, r0), "Row results differ between n_jobs=1 and n_jobs=0"
+    assert np.array_equal(c1, c0), "Column results differ between n_jobs=1 and n_jobs=0"
+
+
+def test_optimask_parallel_reproducibility_pandas():
+    """Tests reproducibility of OptiMask results for Pandas DataFrames with different n_jobs settings."""
+    data_dict = {
+        'A': [1, np.nan, 9, 13],
+        'B': [2, 6, 10, np.nan],
+        'C': [np.nan, 7, 11, 15],
+        'D': [4, 8, np.nan, 16]
+    }
+    df = pd.DataFrame(data_dict)
+    random_seed = 42
+    n_tries_val = 20
+
+    om1 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=1)
+    idx1, cols1 = om1.solve(df.copy())
+
+    om2 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=2)
+    idx2, cols2 = om2.solve(df.copy())
+
+    om_neg1 = OptiMask(n_tries=n_tries_val, random_state=random_seed, n_jobs=-1)
+    idx_neg1, cols_neg1 = om_neg1.solve(df.copy())
+
+    assert idx1.equals(idx2), "Pandas index results differ between n_jobs=1 and n_jobs=2"
+    assert cols1.equals(cols2), "Pandas column results differ between n_jobs=1 and n_jobs=2"
+
+    assert idx1.equals(idx_neg1), "Pandas index results differ between n_jobs=1 and n_jobs=-1"
+    assert cols1.equals(cols_neg1), "Pandas column results differ between n_jobs=1 and n_jobs=-1"
