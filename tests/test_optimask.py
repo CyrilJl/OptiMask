@@ -115,14 +115,10 @@ def test_seed():
     X = generate_random(m=10_000, n=500, ratio=0.025)
     om1 = OptiMask(random_state=99)
     om2 = OptiMask(random_state=99)
-    om3 = OptiMask(random_state=999)
     rows1, cols1 = om1.solve(X, check_result=True)
     rows2, cols2 = om2.solve(X, check_result=True)
-    rows3, cols3 = om3.solve(X, check_result=True)
     assert np.allclose(rows1, rows2)
     assert np.allclose(cols1, cols2)
-    assert (len(rows1) != len(rows3)) or (not np.allclose(rows1, rows3))
-    assert (len(cols1) != len(cols3)) or (not np.allclose(cols1, cols3))
 
 
 def test_speed(opti_mask_instance):
@@ -132,3 +128,11 @@ def test_speed(opti_mask_instance):
         start = perf_counter()
         opti_mask_instance.solve(X=x)
         print(f"{1e3 * (perf_counter() - start):.2f}ms")
+
+
+def test_large_arrays(opti_mask_instance):
+    x = generate_random(m=100_000, n=1_000, ratio=0.02)
+    opti_mask_instance.solve(x)
+
+    x = generate_random(m=1_000, n=100_000, ratio=0.02)
+    opti_mask_instance.solve(x)

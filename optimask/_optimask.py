@@ -141,7 +141,7 @@ class OptiMask:
         """
         m, n = x.shape
         iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
-        cols_index_mapper = -np.ones(n, dtype=np.int16)
+        cols_index_mapper = -np.ones(n, dtype=np.int32)
         rows_with_nan = np.empty(m, dtype=np.uint32)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
@@ -172,11 +172,17 @@ class OptiMask:
         ].astype(np.uint32)
         return iy, ix, rows_with_nan, cols_with_nan
 
-    def _trial(self, rng, m_nan, n_nan, iy, ix, m, n):
-        p_rows = rng.permutation(m_nan).astype(np.uint32)
-        p_cols = rng.permutation(n_nan).astype(np.uint32)
-        iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
-        ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
+    def _trial(self, k, rng, m_nan, n_nan, iy, ix, m, n):
+        if k:
+            p_rows = rng.permutation(m_nan).astype(np.uint32)
+            p_cols = rng.permutation(n_nan).astype(np.uint32)
+            iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
+            ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
+        else:
+            p_rows = np.arange(m_nan, dtype=np.uint32)
+            p_cols = np.arange(n_nan, dtype=np.uint32)
+            iy_trial = iy.copy()
+            ix_trial = ix.copy()
 
         hy = self.groupby_max(iy_trial, ix_trial, m_nan)
         step = 0
@@ -271,7 +277,7 @@ class OptiMask:
             rng = np.random.default_rng(seed=self.random_state)
             area_max = -1
             for k in range(self.n_tries):
-                area, i0, j0, p_rows, p_cols = self._trial(rng, m_nan, n_nan, iy, ix, m, n)
+                area, i0, j0, p_rows, p_cols = self._trial(k, rng, m_nan, n_nan, iy, ix, m, n)
                 self._verbose(f"\tTrial {k + 1} : submatrix of size {m - j0}x{n - i0} ({area} elements) found.")
                 if area > area_max:
                     area_max = area
