@@ -141,7 +141,7 @@ class OptiMask:
         """
         m, n = x.shape
         iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
-        cols_index_mapper = -np.ones(n, dtype=np.int16)
+        cols_index_mapper = -np.ones(n, dtype=np.int32)
         rows_with_nan = np.empty(m, dtype=np.uint32)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
@@ -179,10 +179,10 @@ class OptiMask:
             iy_trial = self.apply_permutation(p_rows, iy, inplace=False)
             ix_trial = self.apply_permutation(p_cols, ix, inplace=False)
         else:
-            p_rows = np.arange(m_nan).astype(np.uint32)
-            p_cols = np.arange(n_nan).astype(np.uint32)
-            iy_trial = ix.astype(np.uint32)
-            ix_trial = iy.astype(np.uint32)
+            p_rows = np.arange(m_nan, dtype=np.uint32)
+            p_cols = np.arange(n_nan, dtype=np.uint32)
+            iy_trial = iy.copy()
+            ix_trial = ix.copy()
 
         hy = self.groupby_max(iy_trial, ix_trial, m_nan)
         step = 0
