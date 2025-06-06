@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optimask"
-version = "1.3.8"
+version = "1.3.9"
 description = "OptiMask: extracting the largest (non-contiguous) submatrix without NaN"
 readme = "README.md"
 authors = [
