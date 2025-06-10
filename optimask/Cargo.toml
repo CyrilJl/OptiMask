@@ -1,0 +1,13 @@
+[package]
+name = "optimask_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+numpy = "0.19" # Or the latest compatible version
+pyo3 = { version = "0.19", features = ["extension-module", "abi3-py37"] } # Or the latest compatible version
+num-traits = "0.2"
+
+[lib]
+name = "optimask_rust"
+crate-type = ["cdylib"]

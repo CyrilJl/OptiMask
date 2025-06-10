@@ -2,9 +2,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from numba import bool_, njit, prange, uint32
-from numba.types import UniTuple
-
+from . import optimask_rust
 from ._misc import (
     EmptyInputError,
     InvalidDimensionError,
@@ -38,85 +36,40 @@ class OptiMask:
             warning(msg)
 
     @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def groupby_max(a, b, n):
-        """
-        numba equivalent to :
-            size_a = len(a)
-            ret = np.zeros(n, dtype=np.uint32)
-            np.maximum.at(ret, a, b + 1)
-            return ret
-        """
-        size_a = len(a)
-        ret = np.zeros(n, dtype=np.uint32)
-        for k in range(size_a):
-            ak = a[k]
-            ret[ak] = max(ret[ak], b[k] + 1)
-        return ret
+        # Inputs a, b are np.ndarray (uint32). PyO3 converts to Vec<u32>.
+        # optimask_rust.groupby_max returns a Python list.
+        return np.array(optimask_rust.groupby_max(a, b, n), dtype=np.uint32)
 
     @staticmethod
-    @njit(bool_(uint32[:]), boundscheck=False, cache=True)
     def is_decreasing(h):
-        for i in range(len(h) - 1):
-            if h[i] < h[i + 1]:
-                return False
-        return True
-
-    @staticmethod
-    @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
-    def numba_apply_permutation(p, x):
-        n = p.size
-        m = x.size
-        rank = np.empty(n, dtype=np.uint32)
-        result = np.empty(m, dtype=np.uint32)
-
-        for i in prange(n):
-            rank[p[i]] = i
-
-        for i in prange(m):
-            result[i] = rank[x[i]]
-        return result
-
-    @staticmethod
-    @njit((uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
-    def numba_apply_permutation_inplace(p, x):
-        n = p.size
-        rank = np.empty(n, dtype=np.uint32)
-
-        for i in prange(n):
-            rank[p[i]] = i
-
-        for i in prange(x.size):
-            x[i] = rank[x[i]]
+        # Input h is np.ndarray (uint32). PyO3 converts to Vec<u32>.
+        # optimask_rust.is_decreasing returns a bool.
+        return optimask_rust.is_decreasing(h)
 
     @classmethod
-    def apply_permutation(cls, p, x, inplace: bool):
-        """
-        Applies a permutation to an array.
-
-        Args:
-            p (np.ndarray): The permutation array.
-            x (np.ndarray): The array to be permuted.
-            inplace (bool): If True, applies the permutation in place; otherwise, returns a new permuted array.
-
-        Returns:
-            np.ndarray: The permuted array if inplace is False; otherwise, None.
-        """
+    def apply_permutation(cls, p: np.ndarray, x: np.ndarray, inplace: bool):
+        # p and x are uint32 NumPy arrays.
+        # Rust functions numba_apply_permutation and numba_apply_permutation_inplace
+        # take Vec<u32> (PyO3 handles conversion) and return Vec<u32> (Python list).
         if inplace:
-            cls.numba_apply_permutation_inplace(p, x)
+            if not isinstance(x, np.ndarray):
+                raise TypeError("Input 'x' for inplace permutation must be a NumPy array.")
+            # The rust function numba_apply_permutation_inplace takes p and x (as Vec<u32>)
+            # and returns the permuted x as a new Vec<u32> (Python list).
+            permuted_x_list = optimask_rust.numba_apply_permutation_inplace(p, x.astype(np.uint32)) # Ensure uint32 for Rust
+            x[:] = permuted_x_list  # Update original array content
+            # No return for in-place operations typically
         else:
-            return cls.numba_apply_permutation(p, x)
+            permuted_x_list = optimask_rust.numba_apply_permutation(p.astype(np.uint32), x.astype(np.uint32)) # Ensure uint32
+            return np.array(permuted_x_list, dtype=np.uint32) # Return new NumPy array
 
     @staticmethod
-    @njit(UniTuple(uint32[:], 2)(uint32[:], uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def apply_p_step(p_step, a, b):
-        ret_a = np.empty(a.size, dtype=np.uint32)
-        ret_b = np.empty(b.size, dtype=np.uint32)
-        for k in prange(a.size):
-            pk = p_step[k]
-            ret_a[k] = a[pk]
-            ret_b[k] = b[pk]
-        return ret_a, ret_b
+        # Inputs p_step, a, b are np.ndarray (uint32). PyO3 converts to Vec<u32>.
+        # optimask_rust.apply_p_step returns a tuple of Python lists.
+        res_a, res_b = optimask_rust.apply_p_step(p_step.astype(np.uint32), a.astype(np.uint32), b.astype(np.uint32)) # Ensure uint32
+        return np.array(res_a, dtype=np.uint32), np.array(res_b, dtype=np.uint32)
 
     @staticmethod
     def _get_largest_rectangle(heights, m, n):
@@ -125,7 +78,6 @@ class OptiMask:
         return i0, heights[i0], areas[i0]
 
     @staticmethod
-    @njit(boundscheck=False, cache=True)
     def _preprocess(x):
         """
         Preprocesses the input array to identify rows and columns containing NaNs.
@@ -140,37 +92,17 @@ class OptiMask:
                 - cols_with_nan: Columns that contain NaNs.
         """
         m, n = x.shape
-        iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
-        cols_index_mapper = -np.ones(n, dtype=np.int32)
-        rows_with_nan = np.empty(m, dtype=np.uint32)
-        n_rows_with_nan = 0
-        n_cols_with_nan = 0
-        cnt = 0
-        for i in range(m):
-            row_has_nan = False
-            for j in range(n):
-                if np.isnan(x[i, j]):
-                    row_has_nan = True
-                    iy[cnt] = n_rows_with_nan
-
-                    if cols_index_mapper[j] >= 0:
-                        ix[cnt] = cols_index_mapper[j]
-                    else:
-                        ix[cnt] = n_cols_with_nan
-                        cols_index_mapper[j] = n_cols_with_nan
-                        n_cols_with_nan += 1
-                    cnt += 1
-
-            if row_has_nan:
-                rows_with_nan[n_rows_with_nan] = i
-                n_rows_with_nan += 1
-
-        iy, ix = iy[:cnt], ix[:cnt]
-        rows_with_nan = rows_with_nan[:n_rows_with_nan]
-        cols_with_nan = np.flatnonzero(cols_index_mapper >= 0)[
-            cols_index_mapper[cols_index_mapper >= 0].argsort()
-        ].astype(np.uint32)
-        return iy, ix, rows_with_nan, cols_with_nan
+        # Input x is np.ndarray. Rust takes PyReadonlyArray2<f64>.
+        # Ensure x is float64.
+        # optimask_rust._preprocess returns a tuple of Python lists.
+        # x is already np.asarray from solve() method
+        iy_l, ix_l, rwn_l, cwn_l = optimask_rust._preprocess(x.astype(np.float64))
+        return (
+            np.array(iy_l, dtype=np.uint32),
+            np.array(ix_l, dtype=np.uint32),
+            np.array(rwn_l, dtype=np.uint32),
+            np.array(cwn_l, dtype=np.uint32),
+        )
 
     def _trial(self, k, rng, m_nan, n_nan, iy, ix, m, n):
         if k:
@@ -213,7 +145,6 @@ class OptiMask:
             return area, i0, j0, p_rows, p_cols
 
     @staticmethod
-    @njit(uint32[:](uint32, uint32[:], uint32[:], uint32), parallel=True, boundscheck=False, cache=True)
     def compute_to_keep(size, index_with_nan, permutation, split):
         """
         Computes the indices to keep after removing a subset of indices with NaNs.
@@ -227,19 +158,13 @@ class OptiMask:
         Returns:
             np.ndarray: The indices to keep after removing the subset with NaNs.
         """
-        mask = np.zeros(size, dtype=np.uint8)
-        for i in prange(split):
-            mask[index_with_nan[permutation[i]]] = 1
-
-        count = size - split
-
-        result = np.empty(count, dtype=np.uint32)
-        idx = 0
-        for i in range(size):
-            if mask[i] == 0:
-                result[idx] = i
-                idx += 1
-        return result
+        # Inputs index_with_nan, permutation are np.ndarray (uint32). PyO3 converts to Vec<u32>.
+        # size and split are Python integers.
+        # optimask_rust.compute_to_keep returns a Python list.
+        return np.array(
+            optimask_rust.compute_to_keep(size, index_with_nan.astype(np.uint32), permutation.astype(np.uint32), split), # Ensure uint32
+            dtype=np.uint32,
+        )
 
     def _solve(self, x):
         m, n = x.shape
@@ -293,7 +218,6 @@ class OptiMask:
             return rows_to_keep, cols_to_keep
 
     @staticmethod
-    @njit(boundscheck=False, cache=True)
     def has_nan_in_subset(X, rows, cols):
         """
         Checks if there are any NaN values in the specified subset of the array.
@@ -306,11 +230,11 @@ class OptiMask:
         Returns:
             bool: True if there are NaN values in the subset, False otherwise.
         """
-        for i in range(rows.size):
-            for j in range(cols.size):
-                if np.isnan(X[rows[i], cols[j]]):
-                    return True
-        return False
+        # Input X is np.ndarray (float64). Rust takes PyReadonlyArray2<f64>.
+        # Inputs rows, cols are np.ndarray. Rust takes Vec<usize>.
+        # X is already np.asarray from solve() method. Ensure it's float64 for Rust.
+        # PyO3 should handle conversion of NumPy int arrays (like uint32, uint64, int64) to Vec<usize>.
+        return optimask_rust.has_nan_in_subset(X.astype(np.float64), rows, cols)
 
     def solve(
         self,
