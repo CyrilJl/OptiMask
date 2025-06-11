@@ -141,7 +141,7 @@ class OptiMask:
         """
         m, n = x.shape
         iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
-        cols_index_mapper = -np.ones(n, dtype=np.int32)
+        cols_index_mapper = np.full(n, -1, dtype=np.int32)
         rows_with_nan = np.empty(m, dtype=np.uint32)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
@@ -227,16 +227,16 @@ class OptiMask:
         Returns:
             np.ndarray: The indices to keep after removing the subset with NaNs.
         """
-        mask = np.zeros(size, dtype=np.uint8)
+        mask = np.zeros(size, dtype=np.bool_)
         for i in prange(split):
-            mask[index_with_nan[permutation[i]]] = 1
+            mask[index_with_nan[permutation[i]]] = True
 
         count = size - split
 
         result = np.empty(count, dtype=np.uint32)
         idx = 0
         for i in range(size):
-            if mask[i] == 0:
+            if not mask[i]:
                 result[idx] = i
                 idx += 1
         return result
