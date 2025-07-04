@@ -41,7 +41,7 @@ class OptiMask:
     @njit(uint32[:](uint32[:], uint32[:], uint32), boundscheck=False, cache=True)
     def groupby_max(a, b, n):
         """
-        numba equivalent to :
+        numba equivalent to:
             size_a = len(a)
             ret = np.zeros(n, dtype=np.uint32)
             np.maximum.at(ret, a, b + 1)
@@ -57,6 +57,10 @@ class OptiMask:
     @staticmethod
     @njit(bool_(uint32[:]), boundscheck=False, cache=True)
     def is_decreasing(h):
+        """
+        numba equivalent to:
+            return (np.diff(h)>0).all()
+        """
         for i in range(len(h) - 1):
             if h[i] < h[i + 1]:
                 return False
@@ -65,6 +69,13 @@ class OptiMask:
     @staticmethod
     @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
     def numba_apply_permutation(p, x):
+        """
+        numba equivalent to:
+            rank = np.empty_like(p)
+            rank[p] = np.arange(len(p))
+            # Use the rank array to permute x
+            return rank[x]
+        """
         n = p.size
         m = x.size
         rank = np.empty(n, dtype=np.uint32)
@@ -188,16 +199,17 @@ class OptiMask:
         step = 0
         is_pareto_ordered = False
         while not is_pareto_ordered and step < self.max_steps:
+            kind = "mergesort" if step else "quicksort"
             axis = step % 2
             step += 1
             if axis == 0:
-                p_step = (-hy).argsort(kind="mergesort").astype(np.uint32)
+                p_step = (-hy).argsort(kind=kind).astype(np.uint32)
                 self.apply_permutation(p_step, iy_trial, inplace=True)
                 p_rows, hy = self.apply_p_step(p_step, p_rows, hy)
                 hx = self.groupby_max(ix_trial, iy_trial, n_nan)
                 is_pareto_ordered = self.is_decreasing(hx)
             else:
-                p_step = (-hx).argsort(kind="mergesort").astype(np.uint32)
+                p_step = (-hx).argsort(kind=kind).astype(np.uint32)
                 self.apply_permutation(p_step, ix_trial, inplace=True)
                 hy = self.groupby_max(iy_trial, ix_trial, m_nan)
                 p_cols, hx = self.apply_p_step(p_step, p_cols, hx)
