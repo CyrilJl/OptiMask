@@ -199,7 +199,7 @@ class OptiMask:
         step = 0
         is_pareto_ordered = False
         while not is_pareto_ordered and step < self.max_steps:
-            kind = "mergesort" if step else "quicksort"
+            kind = "stable" if step else "quicksort"
             axis = step % 2
             step += 1
             if axis == 0:
