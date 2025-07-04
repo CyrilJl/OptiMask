@@ -141,7 +141,7 @@ class OptiMask:
         """
         m, n = x.shape
         iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
-        cols_index_mapper = np.full(n, -1, dtype=np.int32)
+        cols_index_mapper = -np.ones(n, dtype=np.int32)
         rows_with_nan = np.empty(m, dtype=np.uint32)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
