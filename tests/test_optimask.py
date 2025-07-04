@@ -123,7 +123,13 @@ def test_seed():
 
 def test_speed(opti_mask_instance):
     x = generate_random(m=100_000, n=1_000, ratio=0.02)
-    print()
+    print("\nVertical arrays")
+    for _ in range(5):
+        start = perf_counter()
+        opti_mask_instance.solve(X=x)
+        print(f"{1e3 * (perf_counter() - start):.2f}ms")
+    x = generate_random(m=1_000, n=100_000, ratio=0.02)
+    print("Horizontal arrays")
     for _ in range(5):
         start = perf_counter()
         opti_mask_instance.solve(X=x)
