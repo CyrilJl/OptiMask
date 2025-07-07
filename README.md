@@ -86,22 +86,19 @@ OptiMask’s algorithm is useful for handling unstructured NaN patterns, as show
 
 ```python
 from optimask import OptiMask
-import numpy as np
+from optimask.utils import generate_mar
 
-def generate_random(m, n, ratio):
-    """Missing at random arrays"""
-    return np.random.choice(a=[0, np.nan], size=(m, n), p=[1-ratio, ratio])
-
-x = generate_random(m=100_000, n=1_000, ratio=0.02)
+x = generate_mar(m=100_000, n=1_000, ratio=0.02)
 %time rows, cols = OptiMask(verbose=True).solve(x)
-# CPU times: total: 609 ms
-# Wall time: 191 ms
-# 	Trial 1 : submatrix of size 35008x52 (1820416 elements) found.
-# 	Trial 2 : submatrix of size 35579x51 (1814529 elements) found.
-# 	Trial 3 : submatrix of size 37900x48 (1819200 elements) found.
-# 	Trial 4 : submatrix of size 38040x48 (1825920 elements) found.
-# 	Trial 5 : submatrix of size 37753x48 (1812144 elements) found.
-# Result: the largest submatrix found is of size 38040x48 (1825920 elements) found.
+# CPU times: total: 484 ms
+# Wall time: 178 ms
+
+# 	Trial 1 : submatrix of size 37190x49 (1822310 elements) found.
+# 	Trial 2 : submatrix of size 37147x49 (1820203 elements) found.
+# 	Trial 3 : submatrix of size 37733x48 (1811184 elements) found.
+# 	Trial 4 : submatrix of size 37163x49 (1820987 elements) found.
+# 	Trial 5 : submatrix of size 35611x51 (1816161 elements) found.
+# Result: the largest submatrix found is of size 37190x49 (1822310 elements) found.
 ```
 
 ## Documentation
