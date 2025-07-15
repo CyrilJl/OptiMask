@@ -140,15 +140,14 @@ class OptiMask:
     def _preprocess(x):
         """
         Preprocesses the input array to identify rows and columns containing NaNs.
+        Returns iy, ix, rows_with_nan, cols_with_nan, that satisfy
+        `rows_with_nan[iy], cols_with_nan[ix] == np.isnan(x).nonzero()`
 
         Args:
             x (np.ndarray): The input 2D array with NaN values.
 
         Returns:
-            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-                - iy, ix = np.isnan(x).nonzero()
-                - rows_with_nan: Rows that contain NaNs.
-                - cols_with_nan: Columns that contain NaNs.
+            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
         """
         m, n = x.shape
         iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
