@@ -114,14 +114,23 @@ If you're working with time series data, check out [timefiller](https://github.c
 If you use OptiMask in your research or work, please cite it:
 
 ```bibtex
-@software{optimask2024,
-  author = {Cyril Joly},
-  title = {OptiMask: NaN Removal and Largest Submatrix Computation},
-  year = {2024},
-  url = {https://github.com/CyrilJl/OptiMask},
+@INPROCEEDINGS{Joly2025-vq,
+title = "{OptiMask}: Efficiently finding the largest {NaN-free}
+submatrix",
+booktitle = "Proceedings of the Python in Science Conference",
+author = "Joly, Cyril",
+abstract = "OptiMask is a heuristic designed to compute the largest, not
+necessarily contiguous, submatrix of a matrix with missing
+data. It identifies the optimal set of columns and rows to
+remove to maximize the number of retained elements.",
+publisher = "SciPy",
+pages = "67--74",
+month = jul,
+year = 2025,
+copyright = "https://creativecommons.org/licenses/by/4.0/",
+conference = "Python in Science Conference, 2025",
+location = "Tacoma, Washington"
 }
 ```
 
-Or:
-
-```OptiMask (2024). NaN Removal and Largest Submatrix Computation. Developed by Cyril Joly: https://github.com/CyrilJl/OptiMask```
+This paper is available at https://doi.org/10.25080/uaha7744.
