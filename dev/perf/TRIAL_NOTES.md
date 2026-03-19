@@ -28,7 +28,7 @@ Trial log:
   - Result: `197.77 ms` / `245.14 ms`
 - `perf/trial-05-preprocess-direct-cols`: best overall
   - Strategy: keep the fast one-pass preprocess but build `cols_with_nan` incrementally instead of reconstructing it with boolean filtering and `argsort`
-  - Result: `186.94 ms` / `206.32 ms`
+  - Result: `185.92 ms` / `202.79 ms`
 - `perf/trial-06-fast-solve-dispatch`: mixed
   - Strategy: cache optional `polars` import and avoid redundant `np.asarray(X)` work
   - Result: `190.44 ms` / `203.51 ms`
