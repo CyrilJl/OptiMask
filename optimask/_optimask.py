@@ -153,6 +153,7 @@ class OptiMask:
         iy, ix = np.empty(m * n, dtype=np.uint32), np.empty(m * n, dtype=np.uint32)
         cols_index_mapper = -np.ones(n, dtype=np.int32)
         rows_with_nan = np.empty(m, dtype=np.uint32)
+        cols_with_nan = np.empty(n, dtype=np.uint32)
         n_rows_with_nan = 0
         n_cols_with_nan = 0
         cnt = 0
@@ -168,6 +169,7 @@ class OptiMask:
                     else:
                         ix[cnt] = n_cols_with_nan
                         cols_index_mapper[j] = n_cols_with_nan
+                        cols_with_nan[n_cols_with_nan] = j
                         n_cols_with_nan += 1
                     cnt += 1
 
@@ -177,9 +179,7 @@ class OptiMask:
 
         iy, ix = iy[:cnt], ix[:cnt]
         rows_with_nan = rows_with_nan[:n_rows_with_nan]
-        cols_with_nan = np.flatnonzero(cols_index_mapper >= 0)[
-            cols_index_mapper[cols_index_mapper >= 0].argsort()
-        ].astype(np.uint32)
+        cols_with_nan = cols_with_nan[:n_cols_with_nan]
         return iy, ix, rows_with_nan, cols_with_nan
 
     def _trial(self, k, rng, m_nan, n_nan, iy, ix, m, n):
