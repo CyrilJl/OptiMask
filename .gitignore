@@ -8,11 +8,7 @@ __pycache__/
 
 # development
 
-dev/*
-!dev/perf/
-!dev/perf/*.py
-!dev/perf/*.json
-!dev/perf/*.md
+dev/
 
 # Distribution / packaging
 .Python
