@@ -126,14 +126,14 @@ def test_speed(opti_mask_instance):
     print("\nVertical arrays")
     for _ in range(5):
         start = perf_counter()
-        opti_mask_instance.solve(X=x)
-        print(f"{1e3 * (perf_counter() - start):.2f}ms")
+        rows, cols = opti_mask_instance.solve(X=x)
+        print(f"{1e3 * (perf_counter() - start):.2f}ms rows={rows.size} cols={cols.size}")
     x = generate_random(m=1_000, n=100_000, ratio=0.02)
     print("Horizontal arrays")
     for _ in range(5):
         start = perf_counter()
-        opti_mask_instance.solve(X=x)
-        print(f"{1e3 * (perf_counter() - start):.2f}ms")
+        rows, cols = opti_mask_instance.solve(X=x)
+        print(f"{1e3 * (perf_counter() - start):.2f}ms rows={rows.size} cols={cols.size}")
 
 
 def test_large_arrays(opti_mask_instance):
