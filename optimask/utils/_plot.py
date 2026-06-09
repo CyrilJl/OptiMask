@@ -1,5 +1,17 @@
-import matplotlib.pyplot as plt
+from importlib import import_module
+from typing import Any
+
 import numpy as np
+
+
+def _load_pyplot() -> Any:
+    try:
+        return import_module("matplotlib.pyplot")
+    except ModuleNotFoundError as exc:
+        if exc.name == "matplotlib":
+            msg = "plot() requires matplotlib. Install it with `pip install optimask[plot]`."
+            raise ImportError(msg) from exc
+        raise
 
 
 def plot(
@@ -36,6 +48,7 @@ def plot(
 
     Raises:
         ValueError: If the `data` input is not a 2D array.
+        ImportError: If matplotlib is not installed.
 
     Notes:
         - Rows and columns specified in `rows_to_keep` and `cols_to_keep` remain unchanged.
@@ -47,6 +60,7 @@ def plot(
         >>> data = np.random.rand(10, 10)
         >>> plot(data, rows_to_keep=[1, 2], cols_to_remove=[3, 4], title="Sample Plot", xticks=list('ABCDEFGHIJ'), yticks=range(10))
     """
+    plt = _load_pyplot()
     cmap = plt.get_cmap("coolwarm")
     cmap.set_bad("grey")
     x = data.copy()

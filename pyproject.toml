@@ -20,6 +20,11 @@ dependencies = [
     "numba"
 ]
 
+[project.optional-dependencies]
+plot = [
+    "matplotlib"
+]
+
 [project.urls]
 documentation = "https://optimask.readthedocs.io"
 
