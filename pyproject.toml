@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optimask"
-version = "1.3.12"
+version = "1.4"
 description = "OptiMask: extracting the largest (non-contiguous) submatrix without NaN"
 readme = "README.md"
 authors = [
@@ -18,6 +18,11 @@ dependencies = [
     "numpy",
     "pandas",
     "numba"
+]
+
+[project.optional-dependencies]
+plot = [
+    "matplotlib"
 ]
 
 [project.urls]

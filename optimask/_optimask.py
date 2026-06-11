@@ -2,7 +2,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from numba import bool_, njit, prange, uint32
+from numba import bool_, get_num_threads, njit, prange, uint32
 from numba.types import UniTuple
 
 from ._misc import (
@@ -51,8 +51,54 @@ class OptiMask:
         ret = np.zeros(n, dtype=np.uint32)
         for k in range(size_a):
             ak = a[k]
-            ret[ak] = max(ret[ak], b[k] + 1)
+            value = b[k] + 1
+            if ret[ak] < value:
+                ret[ak] = value
         return ret
+
+    @staticmethod
+    @njit(uint32[:](uint32[:], uint32[:], uint32, uint32), parallel=True, boundscheck=False, cache=True)
+    def groupby_max_parallel(a, b, n, n_threads):
+        """
+        Threaded equivalent of ``groupby_max``.
+
+        Each thread writes to a private scratch row, then the rows are reduced
+        into the final result. This avoids races while keeping the hot loop
+        parallel for large NaN coordinate arrays.
+        """
+        size_a = len(a)
+        chunk_size = (size_a + n_threads - 1) // n_threads
+        scratch = np.zeros((n_threads, n), dtype=np.uint32)
+
+        for thread_id in prange(n_threads):
+            start = thread_id * chunk_size
+            end = start + chunk_size
+            if end > size_a:
+                end = size_a
+
+            local = scratch[thread_id]
+            for k in range(start, end):
+                ak = a[k]
+                value = b[k] + 1
+                if local[ak] < value:
+                    local[ak] = value
+
+        ret = np.zeros(n, dtype=np.uint32)
+        for i in prange(n):
+            best = np.uint32(0)
+            for thread_id in range(n_threads):
+                value = scratch[thread_id, i]
+                if best < value:
+                    best = value
+            ret[i] = best
+        return ret
+
+    @classmethod
+    def _groupby_max(cls, a, b, n):
+        n_threads = get_num_threads()
+        if a.size >= 1_000_000 and int(n) * n_threads * np.dtype(np.uint32).itemsize <= 64 * 1024**2:
+            return cls.groupby_max_parallel(a, b, n, n_threads)
+        return cls.groupby_max(a, b, n)
 
     @staticmethod
     @njit(bool_(uint32[:]), boundscheck=False, cache=True)
@@ -65,6 +111,34 @@ class OptiMask:
             if h[i] < h[i + 1]:
                 return False
         return True
+
+    @staticmethod
+    @njit(uint32[:](uint32[:], uint32), boundscheck=False, cache=True)
+    def counting_argsort_decreasing(h, n_bins):
+        counts = np.zeros(n_bins, dtype=np.uint32)
+        for i in range(h.size):
+            counts[h[i]] += 1
+
+        offsets = np.empty(n_bins, dtype=np.uint32)
+        position = np.uint32(0)
+        for k in range(n_bins):
+            value = n_bins - k - 1
+            offsets[value] = position
+            position += counts[value]
+
+        result = np.empty(h.size, dtype=np.uint32)
+        for i in range(h.size):
+            value = h[i]
+            position = offsets[value]
+            result[position] = i
+            offsets[value] = position + 1
+        return result
+
+    @classmethod
+    def argsort_decreasing(cls, h, n_bins, kind):
+        if h.size >= 4096 and n_bins <= h.size:
+            return cls.counting_argsort_decreasing(h, n_bins)
+        return (-h).argsort(kind=kind).astype(np.uint32)
 
     @staticmethod
     @njit(uint32[:](uint32[:], uint32[:]), parallel=True, boundscheck=False, cache=True)
@@ -182,6 +256,116 @@ class OptiMask:
         cols_with_nan = cols_with_nan[:n_cols_with_nan]
         return iy, ix, rows_with_nan, cols_with_nan
 
+    @staticmethod
+    @njit(parallel=True, boundscheck=False, cache=True)
+    def _preprocess_parallel(x, n_threads):
+        """
+        Parallel preprocessing for large arrays.
+
+        The column order intentionally matches ``_preprocess``: columns are
+        ordered by their first row-major occurrence in the input.
+        """
+        m, n = x.shape
+        row_counts = np.zeros(m, dtype=np.int64)
+        first_rows_by_thread = np.empty((n_threads, n), dtype=np.int64)
+
+        for thread_id in prange(n_threads):
+            for j in range(n):
+                first_rows_by_thread[thread_id, j] = m
+
+        chunk_size = (m + n_threads - 1) // n_threads
+        for thread_id in prange(n_threads):
+            start = thread_id * chunk_size
+            end = start + chunk_size
+            if end > m:
+                end = m
+
+            first_rows = first_rows_by_thread[thread_id]
+            for i in range(start, end):
+                count = 0
+                for j in range(n):
+                    if np.isnan(x[i, j]):
+                        count += 1
+                        if first_rows[j] == m:
+                            first_rows[j] = i
+                row_counts[i] = count
+
+        first_rows = np.empty(n, dtype=np.int64)
+        for j in prange(n):
+            first_row = m
+            for thread_id in range(n_threads):
+                candidate = first_rows_by_thread[thread_id, j]
+                if candidate < first_row:
+                    first_row = candidate
+            first_rows[j] = first_row
+
+        total = 0
+        n_rows_with_nan = 0
+        for i in range(m):
+            total += row_counts[i]
+            if row_counts[i] > 0:
+                n_rows_with_nan += 1
+
+        n_cols_with_nan = 0
+        for j in range(n):
+            if first_rows[j] < m:
+                n_cols_with_nan += 1
+
+        rows_with_nan = np.empty(n_rows_with_nan, dtype=np.uint32)
+        cols_with_nan = np.empty(n_cols_with_nan, dtype=np.uint32)
+        iy = np.empty(total, dtype=np.uint32)
+        ix = np.empty(total, dtype=np.uint32)
+
+        if total == 0:
+            return iy, ix, rows_with_nan, cols_with_nan
+
+        row_map = np.empty(m, dtype=np.uint32)
+        col_map = np.empty(n, dtype=np.uint32)
+        row_offsets = np.empty(m, dtype=np.int64)
+
+        position = 0
+        row_id = 0
+        for i in range(m):
+            row_offsets[i] = position
+            if row_counts[i] > 0:
+                rows_with_nan[row_id] = i
+                row_map[i] = row_id
+                row_id += 1
+            position += row_counts[i]
+
+        keys = np.empty(n, dtype=np.int64)
+        for j in range(n):
+            keys[j] = first_rows[j] * n + j
+        col_order = np.argsort(keys)
+
+        col_id = 0
+        for k in range(n):
+            j = col_order[k]
+            if first_rows[j] < m:
+                cols_with_nan[col_id] = j
+                col_map[j] = col_id
+                col_id += 1
+
+        for i in prange(m):
+            if row_counts[i] > 0:
+                position = row_offsets[i]
+                row_id = row_map[i]
+                for j in range(n):
+                    if np.isnan(x[i, j]):
+                        iy[position] = row_id
+                        ix[position] = col_map[j]
+                        position += 1
+
+        return iy, ix, rows_with_nan, cols_with_nan
+
+    @classmethod
+    def _preprocess_auto(cls, x):
+        n_threads = get_num_threads()
+        scratch_size = n_threads * x.shape[1] * np.dtype(np.int64).itemsize
+        if x.size >= 1_000_000 and n_threads > 1 and scratch_size <= 64 * 1024**2:
+            return cls._preprocess_parallel(x, n_threads)
+        return cls._preprocess(x)
+
     def _trial(self, k, rng, m_nan, n_nan, iy, ix, m, n):
         if k:
             p_rows = rng.permutation(m_nan).astype(np.uint32)
@@ -194,7 +378,7 @@ class OptiMask:
             iy_trial = iy.copy()
             ix_trial = ix.copy()
 
-        hy = self.groupby_max(iy_trial, ix_trial, m_nan)
+        hy = self._groupby_max(iy_trial, ix_trial, m_nan)
         step = 0
         is_pareto_ordered = False
         while not is_pareto_ordered and step < self.max_steps:
@@ -202,15 +386,15 @@ class OptiMask:
             axis = step % 2
             step += 1
             if axis == 0:
-                p_step = (-hy).argsort(kind=kind).astype(np.uint32)
+                p_step = self.argsort_decreasing(hy, n_nan + 1, kind)
                 self.apply_permutation(p_step, iy_trial, inplace=True)
                 p_rows, hy = self.apply_p_step(p_step, p_rows, hy)
-                hx = self.groupby_max(ix_trial, iy_trial, n_nan)
+                hx = self._groupby_max(ix_trial, iy_trial, n_nan)
                 is_pareto_ordered = self.is_decreasing(hx)
             else:
-                p_step = (-hx).argsort(kind=kind).astype(np.uint32)
+                p_step = self.argsort_decreasing(hx, m_nan + 1, kind)
                 self.apply_permutation(p_step, ix_trial, inplace=True)
-                hy = self.groupby_max(iy_trial, ix_trial, m_nan)
+                hy = self._groupby_max(iy_trial, ix_trial, m_nan)
                 p_cols, hx = self.apply_p_step(p_step, p_cols, hx)
                 is_pareto_ordered = self.is_decreasing(hy)
 
@@ -260,7 +444,7 @@ class OptiMask:
         if n == 1:
             return np.flatnonzero(np.isfinite(x.ravel())), np.arange(n)
 
-        iy, ix, rows_with_nan, cols_with_nan = self._preprocess(x)
+        iy, ix, rows_with_nan, cols_with_nan = self._preprocess_auto(x)
         m_nan, n_nan = len(rows_with_nan), len(cols_with_nan)
         if len(iy) == 0:
             return np.arange(m), np.arange(n)

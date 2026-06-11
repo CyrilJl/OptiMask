@@ -121,6 +121,16 @@ def test_seed():
     assert np.allclose(cols1, cols2)
 
 
+def test_parallel_preprocess_matches_serial():
+    X = generate_random(m=1_000, n=1_000, ratio=0.025)
+
+    serial = OptiMask._preprocess(X)
+    parallel = OptiMask._preprocess_parallel(X, n_threads=4)
+
+    for serial_item, parallel_item in zip(serial, parallel):
+        assert np.array_equal(serial_item, parallel_item)
+
+
 def test_speed(opti_mask_instance):
     x = generate_random(m=100_000, n=1_000, ratio=0.02)
     print("\nVertical arrays")

@@ -3,6 +3,15 @@
 What's New?
 ###########
 
+Version 1.4 (June 9, 2026)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- faster large-array preprocessing using a parallel scan while preserving the previous row-major compact coordinate order
+- lower memory pressure during preprocessing by avoiding full ``m * n`` coordinate scratch arrays on large inputs
+- faster grouped height reductions with a threaded ``groupby_max`` path for large NaN coordinate arrays
+- faster row/column ordering in large bounded-height cases using counting sort instead of general-purpose ``argsort``
+- benchmarked on a ``100_000 x 1_000`` matrix with ``2.5%`` MAR and 5 warmed trials: median solve time reduced from about ``134 ms`` to about ``57 ms``
+- added regression coverage to ensure the parallel preprocessing path matches the serial preprocessing output exactly
+
 
 Version 1.3 (July 31, 2024)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
